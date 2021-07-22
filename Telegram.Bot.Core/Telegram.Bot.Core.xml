@@ -1,0 +1,282 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Telegram.Bot.Core</name>
+    </assembly>
+    <members>
+        <member name="T:Telegram.Bot.Core.Access.AccessCommandHandler">
+            <summary>
+            Стандартная реализация <see cref="T:Telegram.Bot.Core.CommandHandler"/> 
+            с поддержкой уровней доступа к командам
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.AccessCommandHandler.Users">
+            <summary>
+            База пользователей
+            </summary>
+        </member>
+        <member name="M:Telegram.Bot.Core.Access.AccessCommandHandler.#ctor(Telegram.Bot.Core.Access.UsersBase)">
+            <summary>
+            Конструктор класса <see cref="T:Telegram.Bot.Core.Access.AccessCommandHandler"/>
+            </summary>
+            <param name="usersBase">База пользователей, созданная пустой или загруженная из файла</param>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.AccessCommandHandler.UnknownCommandResponse">
+            <summary>
+            Ответ бота, если пользователь ввел неизвестную команду. Поддерживается <see cref="F:Telegram.Bot.Types.Enums.ParseMode.Html"/>
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.AccessCommandHandler.NotEnoughtPermissionsResponse">
+            <summary>
+            Ответ бота, если пользователь не имеет достаточных прав для выполнения команды. Поддерживается <see cref="F:Telegram.Bot.Types.Enums.ParseMode.Html"/>
+            </summary>
+        </member>
+        <member name="T:Telegram.Bot.Core.Access.AccessKey">
+            <summary>
+            Ключ доступа
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.AccessKey.Key">
+            <summary>
+            Сам ключ
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.AccessKey.AttachedUserId">
+            <summary>
+            Идентификатор пользователя, владеющего данным ключом
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.AccessKey.KeyDuration">
+            <summary>
+            Время жизни ключа. <see cref="F:System.TimeSpan.MaxValue"/>, чтобы установить неограниченное время
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.AccessKey.StartTime">
+            <summary>
+            Время начала использования ключа
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.AccessKey.AccessLevel">
+            <summary>
+            Уровень доступа к командам
+            </summary>
+        </member>
+        <member name="T:Telegram.Bot.Core.Access.AccessLevelAttribute">
+            <summary>
+            Атрибут уровня доступа к команде
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.AccessLevelAttribute.Level">
+            <summary>
+            Уровень доступа. Уровень доступа выше позволяет выполнять любые команды с более низким уровнем
+            </summary>
+        </member>
+        <member name="M:Telegram.Bot.Core.Access.AccessLevelAttribute.#ctor(System.Int32)">
+            <summary>
+            Создание атрибута уровня доступа к команде
+            </summary>
+            <param name="level">Уровень доступа к команде</param>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.Commands.ActivateKeyCommand.enterKeyResponse">
+            <summary>
+            "Введите ключ". Поддерживается <see cref="!:ParseMode.Html"/>
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.Commands.ActivateKeyCommand.invalidKeyResponse">
+            <summary>
+            "Неверный ключ активации". Поддерживается <see cref="!:ParseMode.Html"/>
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.Commands.ActivateKeyCommand.keyActivatedResponse">
+            <summary>
+            "Ключ активирован". Поддерживается <see cref="!:ParseMode.Html"/>
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.Commands.ActivateKeyCommand.replyMarkup">
+            <summary>
+            Клавиатура, показывающаяся пользователю после выполнения команды. Чтобы ничего не отправлять, укажите <see langword="null"/>
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.Commands.AddAccessKeyCommand.keysDurations">
+            <summary>
+            Ключ - название длительности, значение - сама длительность
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.Commands.AddAccessKeyCommand.keysAccessLevels">
+            <summary>
+            Ключ - название уровня доступа, значение - сама уровень
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.Commands.AddAccessKeyCommand.selectDurationResponse">
+            <summary>
+            "Выберите длительность действия ключа". Поддерживается <see cref="F:Telegram.Bot.Types.Enums.ParseMode.Html"/>
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.Commands.AddAccessKeyCommand.invalidDurationResponse">
+            <summary>
+            "Неверный период действия ключа". Поддерживается <see cref="F:Telegram.Bot.Types.Enums.ParseMode.Html"/>
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.Commands.AddAccessKeyCommand.selectAccessLevelResponse">
+            <summary>
+            "Выберите права доступа". Поддерживается <see cref="F:Telegram.Bot.Types.Enums.ParseMode.Html"/>
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.Commands.AddAccessKeyCommand.invalidAccessLevelResponse">
+            <summary>
+            "Неверные права доступа". Поддерживается <see cref="F:Telegram.Bot.Types.Enums.ParseMode.Html"/>
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.Commands.AddAccessKeyCommand.keyAddedResponse">
+            <summary>
+            "Добавлен новый ключ: {0} | Срок действия: {1} | Права доступа: {2}". Поддерживается <see cref="F:Telegram.Bot.Types.Enums.ParseMode.Html"/>
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.Commands.AddAccessKeyCommand.replyMarkup">
+            <summary>
+            Клавиатура, показывающаяся пользователю после выполнения команды. Чтобы ничего не отправлять, укажите <see langword="null"/>
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.Commands.AddAccessKeyCommand.keysLength">
+            <summary>
+            Длина генерируемого ключа
+            </summary>
+        </member>
+        <member name="T:Telegram.Bot.Core.Access.UsersBase">
+            <summary>
+            Класс, позволяющий управлять базой пользователей
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.UsersBase.Keys">
+            <summary>
+            Массив ключей доступа
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.UsersBase.Users">
+            <summary>
+            Коллекция ключ-значение, где ключ - Id пользователей, значение - информация о пользователе
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.UsersBase.AllUsersIds">
+            <summary>
+            Массив идентификаторов всех пользователей, когда либо писавших в бота
+            </summary>
+        </member>
+        <member name="M:Telegram.Bot.Core.Access.UsersBase.#ctor">
+            <summary>
+            Создает экземпляр класса <see cref="T:Telegram.Bot.Core.Access.UsersBase"/> с пустым массивом пользователей
+            </summary>
+        </member>
+        <member name="M:Telegram.Bot.Core.Access.UsersBase.#ctor(System.Collections.Generic.Dictionary{System.Int64,Telegram.Bot.Core.Access.UserInfo})">
+            <summary>
+            Создает экземпляр класса <see cref="T:Telegram.Bot.Core.Access.UsersBase"/> с заданным массивом пользователей
+            </summary>
+            <param name="users">Массив пользователей, которых необходимо загрузить в базу</param>
+        </member>
+        <member name="M:Telegram.Bot.Core.Access.UsersBase.GetById(System.Int64)">
+            <summary>
+            Возвращает <see cref="T:Telegram.Bot.Core.Access.UserInfo"/> по идентификатору пользователя
+            </summary>
+            <param name="userId">Идентификатор пользователя</param>
+            <returns><see cref="T:Telegram.Bot.Core.Access.UserInfo"/> по идентификатору пользователя</returns>
+        </member>
+        <member name="M:Telegram.Bot.Core.Access.UsersBase.SetById(System.Int64,Telegram.Bot.Core.Access.UserInfo)">
+            <summary>
+            Устанавливает указанный <see cref="T:Telegram.Bot.Core.Access.UserInfo"/> по идентификатору пользователя
+            </summary>
+            <param name="userId">Идентификатор пользователя</param>
+            <param name="userInfo"><see cref="T:Telegram.Bot.Core.Access.UserInfo"/>, который необходимо установить</param>
+        </member>
+        <member name="M:Telegram.Bot.Core.Access.UsersBase.GetJsonString">
+            <summary>
+            Возвращает json-строку, представляющую данный экземпляр <see cref="T:Telegram.Bot.Core.Access.UsersBase"/>
+            </summary>
+            <returns>Json-строка, представляющая данный экземпляр <see cref="T:Telegram.Bot.Core.Access.UsersBase"/></returns>
+        </member>
+        <member name="M:Telegram.Bot.Core.Access.UsersBase.LoadFromJson(System.String)">
+            <summary>
+            Создает <see cref="T:Telegram.Bot.Core.Access.UsersBase"/> из json-строки
+            </summary>
+            <param name="jsonString">Строка json</param>
+            <returns>Новый экземпляр <see cref="T:Telegram.Bot.Core.Access.UsersBase"/>, загруженный из json-строки</returns>
+        </member>
+        <member name="M:Telegram.Bot.Core.Access.UsersBase.StartAutoSave(System.String,System.TimeSpan,System.Threading.CancellationToken)">
+            <summary>
+            Начинает автоматическое сохранение в файл в отдельном потоке
+            </summary>
+            <param name="fileName">Путь к файлу, в который необходимо сохранять данные</param>
+            <param name="delay">Задержка между сохранениями</param>
+            <param name="cancellationToken">Токен отмены</param>
+            <remarks>Данный метод не блокирует поток! Для отмены используйте <see cref="T:System.Threading.CancellationToken"/></remarks>
+        </member>
+        <member name="T:Telegram.Bot.Core.Access.UserInfo">
+            <summary>
+            Информация о пользователе
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.UserInfo.Key">
+            <summary>
+            Ключ доступа. Если не уканан - <see langword="null"/>
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.UserInfo.CustomFields">
+            <summary>
+            Коллекция ключ-значение, где ключ - имя параметра, а его значение, как ни странно, значение. Используйте для хранения нужной вам информации о пользователе 
+            </summary>
+        </member>
+        <member name="M:Telegram.Bot.Core.Access.UserInfo.#ctor">
+            <summary>
+            Конструктор класса <see cref="T:Telegram.Bot.Core.Access.UserInfo"/>
+            </summary>
+        </member>
+        <member name="T:Telegram.Bot.Core.Access.RandomStringGenerator">
+            <summary>
+            Генератор случайных строк
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.RandomStringGenerator.NumbersGenerator">
+            <summary>
+            Возвращает экземпляр класса <see cref="T:Telegram.Bot.Core.Access.RandomStringGenerator"/>, генерирующий строку только из цифр 0987654321
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.RandomStringGenerator.AllSymbolsGenerator">
+            <summary>
+            Возвращает экземпляр класса <see cref="T:Telegram.Bot.Core.Access.RandomStringGenerator"/>, генерирующий строку только из латинских букв с разным регистром и цифр 
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.RandomStringGenerator.Dictionary">
+            <summary>
+            Словарь символов, из которых генерируется случайная строка
+            </summary>
+        </member>
+        <member name="M:Telegram.Bot.Core.Access.RandomStringGenerator.Generate(System.Int32)">
+            <summary>
+            Генерирует случайную строку с указанной длиной
+            </summary>
+            <param name="keyLenght"></param>
+            <returns>Случайная строка с указанной длиной, состоящая из символов словаря</returns>
+        </member>
+        <member name="T:Telegram.Bot.Core.CommandNameAttribute">
+            <summary>
+            Атрибут имени команды
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.CommandNameAttribute.Name">
+            <summary>
+            Имя команды. <para/>
+            Например, чтобы бот откликался на команду "/start", сюда надо ввести "/start" (логично, не правда ли?)
+            </summary>
+        </member>
+        <member name="M:Telegram.Bot.Core.CommandNameAttribute.#ctor">
+            <summary>
+            Создание атрибута имени команды.
+            </summary>
+        </member>
+        <member name="M:Telegram.Bot.Core.CommandNameAttribute.#ctor(System.String)">
+            <summary>
+            Создание атрибута имени команды.
+            </summary>
+            <param name="name">Имя команды</param>
+        </member>
+    </members>
+</doc>
