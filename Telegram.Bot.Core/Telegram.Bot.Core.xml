@@ -15,11 +15,12 @@
             База пользователей
             </summary>
         </member>
-        <member name="M:Telegram.Bot.Core.Access.AccessCommandHandler.#ctor(Telegram.Bot.Core.Access.UsersBase)">
+        <member name="M:Telegram.Bot.Core.Access.AccessCommandHandler.#ctor(Telegram.Bot.Core.Access.UsersBase,System.Boolean)">
             <summary>
             Конструктор класса <see cref="T:Telegram.Bot.Core.Access.AccessCommandHandler"/>
             </summary>
             <param name="usersBase">База пользователей, созданная пустой или загруженная из файла</param>
+            <param name="spamProtectEnabled"><see langword="true"/>, если хотите включить защиту от спама. Защита настраивается свойством <see cref="P:Telegram.Bot.Core.Access.AccessCommandHandler.SpamProtectSettings"/></param>
         </member>
         <member name="P:Telegram.Bot.Core.Access.AccessCommandHandler.UnknownCommandResponse">
             <summary>
@@ -140,6 +141,26 @@
         <member name="P:Telegram.Bot.Core.Access.Commands.AddAccessKeyCommand.keysLength">
             <summary>
             Длина генерируемого ключа
+            </summary>
+        </member>
+        <member name="T:Telegram.Bot.Core.Access.SpamProtectSettings">
+            <summary>
+            Настройки защиты от спама
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.SpamProtectSettings.BlockingDuration">
+            <summary>
+            Время, на которое блокируется пользователь, если замечен спам с его стороны
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.SpamProtectSettings.MaxMessagesCount">
+            <summary>
+            Количество сообщений за промежуток времени <see cref="P:Telegram.Bot.Core.Access.SpamProtectSettings.DetectingDuration"/>, при достижении которого пользователь блокируется
+            </summary>
+        </member>
+        <member name="P:Telegram.Bot.Core.Access.SpamProtectSettings.DetectingDuration">
+            <summary>
+            Если за этот промежуток времени достигнуто максимальное количество сообщений <see cref="P:Telegram.Bot.Core.Access.SpamProtectSettings.MaxMessagesCount"/>, то пользователь блокируется
             </summary>
         </member>
         <member name="T:Telegram.Bot.Core.Access.UsersBase">

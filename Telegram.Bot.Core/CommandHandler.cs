@@ -36,6 +36,9 @@ namespace Telegram.Bot.Core
         {
             try
             {
+                if (IsUserBlocked(message.From.Id))
+                    return;
+
                 Command command = FindCommandForExecute(message.From.Id, message);
 
                 if(command == null)
@@ -103,6 +106,11 @@ namespace Telegram.Bot.Core
         }
 
         protected virtual bool CanExecute(long userId, Command command)
+        {
+            return true;
+        }
+
+        protected virtual bool IsUserBlocked(long userId)
         {
             return true;
         }
