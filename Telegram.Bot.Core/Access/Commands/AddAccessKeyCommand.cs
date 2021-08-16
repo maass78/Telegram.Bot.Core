@@ -6,7 +6,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Telegram.Bot.Core.Access.Commands
 {
-    public abstract class AddAccessKeyCommand : Command
+    public abstract class AddAccessKeyCommand<T> : Command
     {
         /// <summary>
         /// Ключ - название длительности, значение - сама длительность
@@ -112,7 +112,7 @@ namespace Telegram.Bot.Core.Access.Commands
 
             _keyToAdd.AccessLevel = accessLevel;
 
-            UsersBase.Current.Keys.Add(_keyToAdd);
+            UsersBase<T>.Current.Keys.Add(_keyToAdd);
 
             await Respond(context, string.Format(keyAddedResponse, _keyToAdd.Key,_durationString, text), replyMarkup);
         }

@@ -7,9 +7,11 @@ namespace Telegram.Bot.Core
 {
     public class CommandHandler
     {
-        public ILogger Logger { get; set; }
         public CommandsUsersBase UsersCommands { get; }
         private List<Type> _commands;
+
+        public event UnhandledExceptionEventHandler UnhandledException;
+        public event NewMessageEventHandler NewMessage;
 
         public CommandHandler()
         {
@@ -22,20 +24,12 @@ namespace Telegram.Bot.Core
             UsersCommands = usersBase;
         }
 
-        public CommandHandler(ILogger logger) : this()
-        {
-            Logger = logger;
-        }
-
-        public CommandHandler(CommandsUsersBase usersBase, ILogger logger) : this(usersBase)
-        {
-            Logger = logger;                
-        }
-
         public async Task HandleAsync(TelegramBotClient client, Message message)
         {
             try
             {
+                NewMessage?.Invoke(this, new NewMessageEventArgs(message));
+
                 if (IsUserBlocked(message.From.Id))
                     return;
 
@@ -97,7 +91,7 @@ namespace Telegram.Bot.Core
 
         protected virtual void OnUnhandledException(Exception e, CommandContext commandContext)
         {
-            Logger?.LogError($"Unhandled exception {e.GetType().Name}: {e.Message} {e.StackTrace}");
+            UnhandledException?.Invoke(this, new UnhandledExceptionEventArgs(e, commandContext));
         }
 
         protected virtual bool CompareCommandNameForMessage(string message, string commandName)
@@ -112,7 +106,7 @@ namespace Telegram.Bot.Core
 
         protected virtual bool IsUserBlocked(long userId)
         {
-            return true;
+            return false;
         }
 
         private Command FindCommandForExecute(long userId, Message message)
@@ -155,5 +149,29 @@ namespace Telegram.Bot.Core
         }
     }
 
-    public delegate void OnUnknownCommandHandler(TelegramBotClient client, Message message);
+    public delegate void UnhandledExceptionEventHandler(object sender, UnhandledExceptionEventArgs eventArgs);
+
+    public class UnhandledExceptionEventArgs : EventArgs
+    {
+        public UnhandledExceptionEventArgs(Exception exception, CommandContext commandContext)
+        {
+            Exception = exception;
+            CommandContext = commandContext;
+        }
+
+        public Exception Exception { get; }
+        public CommandContext CommandContext { get; }
+    }
+
+    public delegate void NewMessageEventHandler(object sender, NewMessageEventArgs eventArgs);
+
+    public class NewMessageEventArgs : EventArgs
+    {
+        public Message Message { get; }
+
+        public NewMessageEventArgs(Message message)
+        {
+            Message = message;
+        }
+    }
 }

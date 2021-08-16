@@ -5,11 +5,12 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>C:\Users\admin\source\git\Telegram.Bot.Core\Telegram.Bot.Core\Telegram.Bot.Core.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\Telegram.Bot.Core.xml</DocumentationFile>
+    <OutputPath>bin\Release\</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Telegram.Bot" Version="16.0.2" />
+    <PackageReference Include="Telegram.Bot" Version="16.0.2"/>
   </ItemGroup>
 
 </Project>

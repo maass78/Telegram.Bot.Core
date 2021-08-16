@@ -10,11 +10,11 @@ namespace Telegram.Bot.Core.Access
     /// <summary>
     /// Класс, позволяющий управлять базой пользователей
     /// </summary>
-    public class UsersBase
+    public class UsersBase<T>
     {
         private readonly static object _lockObj = new object();
 
-        public static UsersBase Current { get; set; }
+        public static UsersBase<T> Current { get; set; }
 
         /// <summary>
         /// Массив ключей доступа
@@ -24,85 +24,84 @@ namespace Telegram.Bot.Core.Access
         /// <summary>
         /// Коллекция ключ-значение, где ключ - Id пользователей, значение - информация о пользователе
         /// </summary>
-        public Dictionary<long, UserInfo> Users { get; set; }
+        public List<UserInfo<T>> Users { get; set; }
 
         /// <summary>
-        /// Массив идентификаторов всех пользователей, когда либо писавших в бота
+        /// Массив идентификаторов заблокированных пользователей
         /// </summary>
-        public List<long> AllUsersIds { get; set; }
+        public List<long> BlockedUsers { get; set; }
 
         /// <summary>
-        /// Создает экземпляр класса <see cref="UsersBase"/> с пустым массивом пользователей
+        /// Создает экземпляр класса <see cref="UsersBase{T}"/> с пустым массивом пользователей
         /// </summary>
         public UsersBase()
         {
-            Users = new Dictionary<long, UserInfo>();
-            AllUsersIds = new List<long>();
+            Users = new List<UserInfo<T>>();
             Keys = new List<AccessKey>();
+            BlockedUsers = new List<long>();
         }
 
         /// <summary>
-        /// Создает экземпляр класса <see cref="UsersBase"/> с заданным массивом пользователей
+        /// Создает экземпляр класса <see cref="UsersBase{T}"/> с заданным массивом пользователей
         /// </summary>
         /// <param name="users">Массив пользователей, которых необходимо загрузить в базу</param>
-        public UsersBase(Dictionary<long, UserInfo> users)
+        /// <param name="keys">Массив ключей доступа, которых необходимо загрузить в базу</param>
+        public UsersBase(List<UserInfo<T>> users, List<AccessKey> keys)
         {
             Users = users;
-            AllUsersIds = new List<long>();
-            Keys = new List<AccessKey>();
-            foreach (var item in Users)
-            {
-                AllUsersIds.Add(item.Key);
-            }
+            Keys = keys;
+            BlockedUsers = new List<long>();
         }
 
         /// <summary>
-        /// Возвращает <see cref="UserInfo"/> по идентификатору пользователя
+        /// Возвращает <see cref="UserInfo{T}"/> по идентификатору пользователя
         /// </summary>
         /// <param name="userId">Идентификатор пользователя</param>
-        /// <returns><see cref="UserInfo"/> по идентификатору пользователя</returns>
-        public UserInfo GetById(long userId)
+        public UserInfo<T> GetById(long userId)
         {
-            if (!AllUsersIds.Contains(userId))
-                AllUsersIds.Add(userId);
+            var user = Users.FirstOrDefault(x => x.Id == userId);
 
-            bool constains = Users.TryGetValue(userId, out UserInfo user);
-
-            if (constains)
+            if (user != null)
                 return user;
 
-            var newUser = new UserInfo();
-            Users.Add(userId, newUser);
+            var newUser = new UserInfo<T>() { Id = userId };
+            Users.Add(newUser);
             return newUser;
         }
 
         /// <summary>
-        /// Устанавливает указанный <see cref="UserInfo"/> по идентификатору пользователя
+        /// Возвращает <see cref="UserInfo{T}"/> по контексту команды
         /// </summary>
-        /// <param name="userId">Идентификатор пользователя</param>
-        /// <param name="userInfo"><see cref="UserInfo"/>, который необходимо установить</param>
-        public void SetById(long userId, UserInfo userInfo)
+        /// <param name="context">Контекст команды</param>
+        public UserInfo<T> GetById(CommandContext context)
         {
-            Users[userId] = userInfo;
+            var user = Users.FirstOrDefault(x => x.Id == context.Message.From.Id);
+
+            if (user != null)
+                return user;
+
+            var newUser = new UserInfo<T>() { Id = context.Message.From.Id, Username = context.Message.From.Username };
+            Users.Add(newUser);
+            return newUser;
         }
 
         /// <summary>
-        /// Возвращает json-строку, представляющую данный экземпляр <see cref="UsersBase"/>
+        /// Возвращает json-строку, представляющую данный экземпляр <see cref="UsersBase{T}"/>
         /// </summary>
-        /// <returns>Json-строка, представляющая данный экземпляр <see cref="UsersBase"/></returns>
+        /// <returns>Json-строка, представляющая данный экземпляр <see cref="UsersBase{T}"/></returns>
         public string GetJsonString()
         {
             return JsonConvert.SerializeObject(this, Formatting.Indented);
         }
 
         /// <summary>
-        /// Создает <see cref="UsersBase"/> из json-строки
+        /// Создает <see cref="UsersBase{T}"/> из json-строки
         /// </summary>
         /// <param name="jsonString">Строка json</param>
-        /// <returns>Новый экземпляр <see cref="UsersBase"/>, загруженный из json-строки</returns>
-        public static UsersBase LoadFromJson(string jsonString)
+        /// <returns>Новый экземпляр <see cref="UsersBase{T}"/>, загруженный из json-строки</returns>
+        public static UsersBase<T> LoadFromJson(string jsonString)
         {
-            return JsonConvert.DeserializeObject<UsersBase>(jsonString);
+            return JsonConvert.DeserializeObject<UsersBase<T>>(jsonString);
         }
 
         /// <summary>
@@ -129,48 +128,49 @@ namespace Telegram.Bot.Core.Access
             }).Start();
         }
 
-        public bool CanUseCommand(string key, long userId, int requestedLevel)
+        public bool IsUserBlocked(long userId) => BlockedUsers.Contains(userId);
+
+        public bool CanUseCommand(long userId, int requestedLevel)
         {
-            if (requestedLevel < 0)
-                return true;
+            var user = GetById(userId);
 
-            AccessKey accessKey = Keys.FirstOrDefault(x => x.Key == key && x.AttachedUserId == userId);
+            AccessKey accessKey = Keys.FirstOrDefault(x => x.AttachedUserId == userId);
 
-            if (accessKey == null)
-                return false;
-
-            if (requestedLevel <= accessKey.AccessLevel)
+            if (accessKey == null || accessKey.StartTime + accessKey.KeyDuration <= DateTime.UtcNow)
             {
-                if (accessKey.KeyDuration == TimeSpan.MaxValue)
-                    return true;
-
-                return accessKey.StartTime + accessKey.KeyDuration > DateTime.UtcNow;
+                user.AccessLevel = -1;
             }
-            else return false;
+            else
+            {
+                user.AccessLevel = accessKey.AccessLevel;
+            }
+
+            return user.AccessLevel >= requestedLevel;
         }
     }
 
     /// <summary>
     /// Информация о пользователе
     /// </summary>
-    public class UserInfo
+    public class UserInfo<T>
     {
-        /// <summary>
-        /// Ключ доступа. Если не уканан - <see langword="null"/>
-        /// </summary>
-        public string Key { get; set; }
+        public long Id { get; set; }
+
+        public string Username { get; set; }
+
+        public int AccessLevel { get; set; }
 
         /// <summary>
         /// Коллекция ключ-значение, где ключ - имя параметра, а его значение, как ни странно, значение. Используйте для хранения нужной вам информации о пользователе 
         /// </summary>
-        public Dictionary<string, object> CustomFields { get; set; }
+        public T CustomInfo { get; set; }
 
         /// <summary>
-        /// Конструктор класса <see cref="UserInfo"/>
+        /// Конструктор класса <see cref="UserInfo{T}"/>
         /// </summary>
         public UserInfo()
         {
-            CustomFields = new Dictionary<string, object>();
+            AccessLevel = -1;
         }
     }
 }

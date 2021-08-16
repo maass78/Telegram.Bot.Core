@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Telegram.Bot.Core.Access.Commands
 {
-    public abstract class ActivateKeyCommand : Command
+    public abstract class ActivateKeyCommand<T> : Command
     {
         /// <summary>
         /// "Введите ключ". Поддерживается <see cref="ParseMode.Html"/>
@@ -39,7 +40,7 @@ namespace Telegram.Bot.Core.Access.Commands
         {
             string key = context.Message.Text;
 
-            AccessKey accessKey = UsersBase.Current.Keys.FirstOrDefault(x => x.Key == key && x.AttachedUserId == 0);
+            AccessKey accessKey = UsersBase<T>.Current.Keys.FirstOrDefault(x => x.Key == key && x.AttachedUserId == 0);
 
             if (accessKey == null)
             {
@@ -48,11 +49,8 @@ namespace Telegram.Bot.Core.Access.Commands
                 return;
             }
 
-            accessKey.AttachedUserId = context.Message.From.Id;
             accessKey.StartTime = DateTime.UtcNow;
-            UserInfo prev = UsersBase.Current.GetById(context.Message.From.Id);
-
-            UsersBase.Current.SetById(context.Message.From.Id, new UserInfo() { Key = accessKey.Key, CustomFields = prev.CustomFields });
+            accessKey.AttachedUserId = context.Message.From.Id;
 
             await Respond(context, keyActivatedResponse, replyMarkup);
             IsCompleted = true;

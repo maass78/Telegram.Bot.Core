@@ -15,15 +15,26 @@ namespace Telegram.Bot.Core.Example
     {
         private TelegramBotClient _bot;
 
-        private AccessCommandHandler _commandHandler;
+        private AccessCommandHandler<Info> _commandHandler;
 
         public Bot()
         {
-            UsersBase.Current = System.IO.File.Exists("users.json") ? UsersBase.LoadFromJson(System.IO.File.ReadAllText("users.json")) : new UsersBase();
-
+            UsersBase<Info>.Current = System.IO.File.Exists("users.json") ? UsersBase<Info>.LoadFromJson(System.IO.File.ReadAllText("users.json")) : new UsersBase<Info>();
+            UsersBase<Info>.Current.StartAutoSave("users.json", TimeSpan.FromSeconds(20), new CancellationToken());
+            
             _bot = new TelegramBotClient("1918792358:AAF305hQFag9kB6gP1rjuHqO-e-YDtrZQZY");
             _bot.StartReceiving(this);
-            _commandHandler = new AccessCommandHandler(UsersBase.Current, true) { UnknownCommandResponse = "Неизвестная команда", NotEnoughtPermissionsResponse = "Недостаточно прав", Logger = this };
+            _commandHandler = new AccessCommandHandler<Info>(UsersBase<Info>.Current) { UnknownCommandResponse = "Неизвестная команда", NotEnoughtPermissionsResponse = "Недостаточно прав" };
+            
+            _commandHandler.UnhandledException += (s, e) =>
+            {
+                LogError($"{e.Exception.GetType()}: {e.Exception.Message}");
+            };
+
+            _commandHandler.NewMessage += (s, e) =>
+            {
+                LogInfo($"[{e.Message.From.Id} {e.Message.From.Username}]: {e.Message.Text ?? "null"}");
+            };
         }
 
         public UpdateType[] AllowedUpdates => new[] { UpdateType.Message };
@@ -43,17 +54,20 @@ namespace Telegram.Bot.Core.Example
 
         public void LogError(string message)
         {
-            Console.WriteLine(message);
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"[{DateTime.Now}] [ERROR] {message}");
         }
 
         public void LogInfo(string message)
         {
-            Console.WriteLine(message);
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine($"[{DateTime.Now}] [INFO] {message}");
         }
 
         public void LogWarning(string message)
         {
-            Console.WriteLine(message);
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"[{DateTime.Now}] [WARNING] {message}");
         }
     }
 }
