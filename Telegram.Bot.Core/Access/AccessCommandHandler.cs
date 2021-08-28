@@ -1,6 +1,7 @@
 ﻿using System;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Telegram.Bot.Core.Access
 {
@@ -25,6 +26,11 @@ namespace Telegram.Bot.Core.Access
         }
 
         /// <summary>
+        /// Клавиатура, отправляемая пользователю в случае, если тот ввел неизвестную команду или не имеет прав на выполнение команды
+        /// </summary>
+        public IReplyMarkup Keyboard { get; set; }
+
+        /// <summary>
         /// Ответ бота, если пользователь ввел неизвестную команду. Поддерживается <see cref="ParseMode.Html"/>
         /// </summary>
         public string UnknownCommandResponse { get; set; } = "Unknown command";
@@ -34,12 +40,12 @@ namespace Telegram.Bot.Core.Access
         /// </summary>
         public string NotEnoughtPermissionsResponse { get; set; } = "Not enought permissions";
 
-        protected override bool IsUserBlocked(long userId)
+        protected override bool IsUserBlocked(CommandContext commandContext)
         {
-            return Users.IsUserBlocked(userId);
+            return Users.IsUserBlocked(commandContext);
         }
 
-        protected override bool CanExecute(long userId, Command command)
+        protected override bool CanExecute(CommandContext context, Command command)
         {
             int requestedLevel = -1;
 
@@ -51,14 +57,14 @@ namespace Telegram.Bot.Core.Access
                 }
             }
 
-            return Users.CanUseCommand(userId, requestedLevel);
+            return Users.CanUseCommand(context, requestedLevel);
         }
 
         protected override async void OnCannotExecute(CommandContext context)
         {
             try
             {
-                await context.BotClient.SendTextMessageAsync(context.Message.Chat.Id, NotEnoughtPermissionsResponse, ParseMode.Html);
+                await context.BotClient.SendTextMessageAsync(context.Message.Chat.Id, NotEnoughtPermissionsResponse, ParseMode.Html, replyMarkup: Keyboard);
             }
             catch { }
         }
@@ -67,7 +73,7 @@ namespace Telegram.Bot.Core.Access
         {
             try
             {
-                await client.SendTextMessageAsync(message.Chat.Id, UnknownCommandResponse, ParseMode.Html);
+                await client.SendTextMessageAsync(message.Chat.Id, UnknownCommandResponse, ParseMode.Html, replyMarkup: Keyboard);
             }
             catch { }
         }

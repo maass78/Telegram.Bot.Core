@@ -28,9 +28,11 @@ namespace Telegram.Bot.Core
         {
             try
             {
+                CommandContext context = new CommandContext(message, client);
+
                 NewMessage?.Invoke(this, new NewMessageEventArgs(message));
 
-                if (IsUserBlocked(message.From.Id))
+                if (IsUserBlocked(context))
                     return;
 
                 Command command = FindCommandForExecute(message.From.Id, message);
@@ -41,8 +43,7 @@ namespace Telegram.Bot.Core
                 }
                 else
                 {
-                    CommandContext context = new CommandContext(message, client);
-                    if(CanExecute(message.From.Id, command))
+                    if(CanExecute(context, command))
                     {
                         try
                         {
@@ -51,11 +52,13 @@ namespace Telegram.Bot.Core
                             if (command.IsCompleted)
                             {
                                 UsersCommands.SetCommandForUser(message.From.Id, null);
-                                OnCommandCompleted(context, command, message.From.Id, command.IsSuccess, command.Tag);
+                                OnCommandCompleted(context, command);
                             }
                         }
                         catch (Exception e)
                         {
+                            UsersCommands.SetCommandForUser(message.From.Id, null);
+                            OnCommandCompleted(context, command);
                             OnUnhandledException(e, context);
                         }
                     }
@@ -65,8 +68,8 @@ namespace Telegram.Bot.Core
                         OnCannotExecute(context);
                     }
                 }
-            }
-            catch { }
+           }
+           catch (Exception ex) { OnUnhandledException(ex, null); }
         }
 
         public void AddCommand<T>() where T : Command
@@ -74,7 +77,7 @@ namespace Telegram.Bot.Core
             _commands.Add(typeof(T));
         }
 
-        protected virtual void OnCommandCompleted(CommandContext commandContext, Command command, long userId, bool success, object tag)
+        protected virtual void OnCommandCompleted(CommandContext commandContext, Command command)
         {
 
         }
@@ -99,12 +102,12 @@ namespace Telegram.Bot.Core
             return commandName == message;
         }
 
-        protected virtual bool CanExecute(long userId, Command command)
+        protected virtual bool CanExecute(CommandContext commandContext, Command command)
         {
             return true;
         }
 
-        protected virtual bool IsUserBlocked(long userId)
+        protected virtual bool IsUserBlocked(CommandContext commandContext)
         {
             return false;
         }

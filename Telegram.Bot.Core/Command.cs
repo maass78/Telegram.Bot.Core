@@ -18,30 +18,17 @@ namespace Telegram.Bot.Core
 
         public async Task ExecutePartAsync(CommandContext context)
         {
-            try
-            {
-                await parts[partIndex++](context);
+            await parts[partIndex++](context);
 
-                if (partIndex >= parts.Length)
-                    IsCompleted = true;
-            }
-            catch (Exception)
-            {
-
-            }
+            if (partIndex >= parts.Length)
+                IsCompleted = true;
         }
 
-        protected async Task Respond(CommandContext context, string message, IReplyMarkup replyMarkup = null, ParseMode parseMode = ParseMode.Html)
+        protected async Task Respond(CommandContext context, string message, IReplyMarkup replyMarkup = null, ParseMode parseMode = ParseMode.Html, bool disableWebPreview = true)
         {
-            try
-            {
-                await context.BotClient.SendTextMessageAsync(context.Message.Chat.Id, message, parseMode, replyMarkup: replyMarkup);
-            }
-            catch (Exception) { }
+            await context.BotClient.SendTextMessageAsync(context.Message.Chat.Id, message, parseMode, replyMarkup: replyMarkup, disableWebPagePreview: disableWebPreview);
         }
     }
 
     public delegate Task CommandPartAsyncAction(CommandContext context);
-
-
 }

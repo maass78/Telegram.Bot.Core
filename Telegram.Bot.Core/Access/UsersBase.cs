@@ -111,7 +111,7 @@ namespace Telegram.Bot.Core.Access
         /// <param name="delay">Задержка между сохранениями</param>
         /// <param name="cancellationToken">Токен отмены</param>
         /// <remarks>Данный метод не блокирует поток! Для отмены используйте <see cref="CancellationToken"/></remarks>
-        public void StartAutoSave(string fileName, TimeSpan delay, CancellationToken cancellationToken)
+        public virtual void StartAutoSave(string fileName, TimeSpan delay, CancellationToken cancellationToken)
         {
             new Thread(() =>
             {
@@ -128,13 +128,13 @@ namespace Telegram.Bot.Core.Access
             }).Start();
         }
 
-        public bool IsUserBlocked(long userId) => BlockedUsers.Contains(userId);
+        public virtual bool IsUserBlocked(CommandContext commandContext) => BlockedUsers.Contains(commandContext.Message.From.Id);
 
-        public bool CanUseCommand(long userId, int requestedLevel)
+        public virtual bool CanUseCommand(CommandContext commandContext, int requestedLevel)
         {
-            var user = GetById(userId);
+            var user = GetById(commandContext);
 
-            AccessKey accessKey = Keys.FirstOrDefault(x => x.AttachedUserId == userId);
+            AccessKey accessKey = Keys.FirstOrDefault(x => x.AttachedUserId == commandContext.Message.From.Id);
 
             if (accessKey == null || accessKey.StartTime + accessKey.KeyDuration <= DateTime.UtcNow)
             {
