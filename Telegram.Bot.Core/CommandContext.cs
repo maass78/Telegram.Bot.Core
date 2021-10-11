@@ -2,15 +2,13 @@
 
 namespace Telegram.Bot.Core
 {
-    public class CommandContext
+    public class CommandContext : BaseCommandContext
     {
         public Message Message { get; }
-        public TelegramBotClient BotClient { get; }
 
-        public CommandContext(Message message, TelegramBotClient bot)
+        public CommandContext(Message message, TelegramBotClient bot) : base(message.Chat, message.From, bot)
         {
             Message = message;
-            BotClient = bot;
         }
     }
 }

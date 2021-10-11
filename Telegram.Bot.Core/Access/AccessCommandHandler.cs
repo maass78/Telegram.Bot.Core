@@ -1,5 +1,5 @@
 ﻿using System;
-using Telegram.Bot.Types;
+using Telegram.Bot.Core.Callback;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -36,16 +36,21 @@ namespace Telegram.Bot.Core.Access
         public string UnknownCommandResponse { get; set; } = "Unknown command";
 
         /// <summary>
+        /// Ответ бота, если пользователь кликнул на кнопку, для которой не определена команда. Поддерживается <see cref="ParseMode.Html"/>
+        /// </summary>
+        public string UnknownCallbackResponse { get; set; } = null;
+
+        /// <summary>
         /// Ответ бота, если пользователь не имеет достаточных прав для выполнения команды. Поддерживается <see cref="ParseMode.Html"/>
         /// </summary>
         public string NotEnoughtPermissionsResponse { get; set; } = "Not enought permissions";
 
-        protected override bool IsUserBlocked(CommandContext commandContext)
+        protected override bool IsUserBlocked(BaseCommandContext context)
         {
-            return Users.IsUserBlocked(commandContext);
+            return Users.IsUserBlocked(context);
         }
 
-        protected override bool CanExecute(CommandContext context, Command command)
+        protected override bool CanExecute(BaseCommandContext context, Command command)
         {
             int requestedLevel = -1;
 
@@ -60,20 +65,44 @@ namespace Telegram.Bot.Core.Access
             return Users.CanUseCommand(context, requestedLevel);
         }
 
-        protected override async void OnCannotExecute(CommandContext context)
+        protected override async void OnCannotExecuteCommand(CommandContext context)
         {
             try
             {
-                await context.BotClient.SendTextMessageAsync(context.Message.Chat.Id, NotEnoughtPermissionsResponse, ParseMode.Html, replyMarkup: Keyboard);
+                if (NotEnoughtPermissionsResponse != null)
+                    await context.BotClient.SendTextMessageAsync(context.Chat, NotEnoughtPermissionsResponse, ParseMode.Html, replyMarkup: Keyboard);
             }
             catch { }
         }
 
-        protected override async void OnUnknownCommand(TelegramBotClient client, Message message)
+        protected override async void OnCannotExecuteCallback(CallbackCommandContext context)
         {
             try
             {
-                await client.SendTextMessageAsync(message.Chat.Id, UnknownCommandResponse, ParseMode.Html, replyMarkup: Keyboard);
+                if (NotEnoughtPermissionsResponse != null)
+                    await context.BotClient.SendTextMessageAsync(context.Chat, NotEnoughtPermissionsResponse, ParseMode.Html, replyMarkup: Keyboard);
+
+                await context.BotClient.AnswerCallbackQueryAsync(context.CallbackQuery.Id);
+            }
+            catch { }
+        }
+
+        protected override async void OnUnknownCommand(CommandContext context)
+        {
+            try
+            {
+                if (UnknownCommandResponse != null)
+                    await context.BotClient.SendTextMessageAsync(context.Chat, UnknownCommandResponse, ParseMode.Html, replyMarkup: Keyboard);
+            }
+            catch { }
+        }
+
+        protected override async void OnUnknownCallback(CallbackCommandContext context)
+        {
+            try
+            {
+                if (UnknownCallbackResponse != null)
+                    await context.BotClient.SendTextMessageAsync(context.Chat, UnknownCallbackResponse, ParseMode.Html, replyMarkup: Keyboard);
             }
             catch { }
         }

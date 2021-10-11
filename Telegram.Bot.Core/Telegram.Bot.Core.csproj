@@ -2,6 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>Neq.Telegram.Bot.Core</PackageId>
+    <Authors>maass78</Authors>
+    <Product>Telegram.Bot.Core</Product>
+    <Company>Neq</Company>
+    <Description>Библиотека-обертка для создания telegram ботов</Description>
+    <PackageProjectUrl>https://github.com/maass78/Telegram.Bot.Core</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/maass78/Telegram.Bot.Core</RepositoryUrl>
+    <NeutralLanguage>ru</NeutralLanguage>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -18,15 +17,21 @@ namespace Telegram.Bot.Core
 
         public async Task ExecutePartAsync(CommandContext context)
         {
+            if (parts.Length < 1)
+            {
+                IsCompleted = true;
+                return;
+            }
+
             await parts[partIndex++](context);
 
             if (partIndex >= parts.Length)
                 IsCompleted = true;
         }
 
-        protected async Task Respond(CommandContext context, string message, IReplyMarkup replyMarkup = null, ParseMode parseMode = ParseMode.Html, bool disableWebPreview = true)
+        protected async Task Respond(BaseCommandContext context, string message, IReplyMarkup replyMarkup = null, ParseMode parseMode = ParseMode.Html, bool disableWebPreview = true)
         {
-            await context.BotClient.SendTextMessageAsync(context.Message.Chat.Id, message, parseMode, replyMarkup: replyMarkup, disableWebPagePreview: disableWebPreview);
+            await context.BotClient.SendTextMessageAsync(context.Chat, message, parseMode, replyMarkup: replyMarkup, disableWebPagePreview: disableWebPreview);
         }
     }
 

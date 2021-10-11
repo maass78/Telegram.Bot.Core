@@ -1,29 +1,49 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Telegram.Bot.Core.Callback;
 using Telegram.Bot.Types;
 
 namespace Telegram.Bot.Core
 {
+    /// <summary>
+    /// Класс, предоставляющий методы для обработки сообщений пользователя
+    /// </summary>
     public class CommandHandler
     {
+        /// <summary>
+        /// Информация о командах пользователей
+        /// </summary>
         public CommandsUsersBase UsersCommands { get; }
-        private List<Type> _commands;
 
+        private List<Type> _commands;
+        private List<Type> _callbackCommands;
+
+        /// <summary>
+        /// Вызывается при выбрасывании необрабатываемого исключения
+        /// </summary>
         public event UnhandledExceptionEventHandler UnhandledException;
+
+        /// <summary>
+        /// Вызывается при получении нового сообщения
+        /// </summary>
         public event NewMessageEventHandler NewMessage;
 
+        /// <summary>
+        /// Конструктор класса
+        /// </summary>
         public CommandHandler()
         {
             UsersCommands = new CommandsUsersBase();
             _commands = new List<Type>();
+            _callbackCommands = new List<Type>();
         }
 
-        public CommandHandler(CommandsUsersBase usersBase) : this()
-        {
-            UsersCommands = usersBase;
-        }
-
+        /// <summary>
+        /// Обработать новое сообщение
+        /// </summary>
+        /// <param name="client">Экземпляр класса <see cref="TelegramBotClient"/>, с помощью которого необходимо обработать новое сообщение</param>
+        /// <param name="message">Сообщение, которое необходимо обработать</param>
         public async Task HandleAsync(TelegramBotClient client, Message message)
         {
             try
@@ -37,77 +57,200 @@ namespace Telegram.Bot.Core
 
                 Command command = FindCommandForExecute(message.From.Id, message);
 
-                if(command == null)
+                if (command == null)
                 {
-                    OnUnknownCommand(client, message);
+                    OnUnknownCommand(context);
+                    return;
                 }
-                else
+                
+                try
                 {
-                    if(CanExecute(context, command))
-                    {
-                        try
-                        {
-                            await command.ExecutePartAsync(context);
-
-                            if (command.IsCompleted)
-                            {
-                                UsersCommands.SetCommandForUser(message.From.Id, null);
-                                OnCommandCompleted(context, command);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            UsersCommands.SetCommandForUser(message.From.Id, null);
-                            OnCommandCompleted(context, command);
-                            OnUnhandledException(e, context);
-                        }
-                    }
-                    else
+                    if (!CanExecute(context, command))
                     {
                         UsersCommands.SetCommandForUser(message.From.Id, null);
-                        OnCannotExecute(context);
+                        OnCannotExecuteCommand(context);
+                        return;
                     }
+
+                    await command.ExecutePartAsync(context);
+                
+                    if (command.IsCompleted)
+                    {
+                        UsersCommands.SetCommandForUser(message.From.Id, null);
+                        OnCommandCompleted(context, command);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    UsersCommands.SetCommandForUser(message.From.Id, null);
+                    OnCommandCompleted(context, command);
+                    OnUnhandledException(ex, context);
                 }
            }
            catch (Exception ex) { OnUnhandledException(ex, null); }
         }
 
+        /// <summary>
+        /// Обработать новое callback-сообщение
+        /// </summary>
+        /// <param name="client">Экземпляр класса <see cref="TelegramBotClient"/>, с помощью которого необходимо обработать новое callback-сообщение</param>
+        /// <param name="callback">Callback-cообщение, которое необходимо обработать</param>
+        public async Task HandleCallbackAsync(TelegramBotClient client, CallbackQuery callback)
+        {
+            try
+            {
+                CallbackCommandContext callbackContext = new CallbackCommandContext(callback, client);
+
+                if (IsUserBlocked(callbackContext))
+                    return;
+
+                CallbackCommand command = FindCallbackCommandForExecute(callback.From.Id, callback);
+
+                if (command == null)
+                {
+                    OnUnknownCallback(callbackContext);
+                    return;
+                }
+
+                try
+                {
+                    if (!CanExecute(callbackContext, command))
+                    {
+                        if (!command.OnlyResponse)
+                            UsersCommands.SetCommandForUser(callback.From.Id, null);
+
+                        OnCannotExecuteCallback(callbackContext);
+
+                        return;
+                    }
+
+                    await command.Execute(callbackContext);
+                }
+                catch (Exception ex)
+                {
+                    if (!command.OnlyResponse)
+                        UsersCommands.SetCommandForUser(callback.From.Id, null);
+
+                    OnUnhandledException(ex, callbackContext);
+                }
+            }
+            catch (Exception ex) { OnUnhandledException(ex, null); }
+        }
+
+        /// <summary>
+        /// Добавить новую команду
+        /// </summary>
+        /// <typeparam name="T">Класс, производный от <see cref="Command"></typeparam>
         public void AddCommand<T>() where T : Command
         {
             _commands.Add(typeof(T));
         }
 
-        protected virtual void OnCommandCompleted(CommandContext commandContext, Command command)
+        /// <summary>
+        /// Добавить новую callback-команду
+        /// </summary>
+        /// <typeparam name="T">Класс, производный от <see cref="CallbackCommand"/></typeparam>
+        public void AddCallbackCommand<T>() where T : CallbackCommand
+        {
+            _callbackCommands.Add(typeof(T));
+        }
+
+        /// <summary>
+        /// Вызывается после окончания выполнения команды
+        /// </summary>
+        /// <param name="context">Контекст завершенной команды</param>
+        /// <param name="command">Команда, которая завершила своё выполнение</param>
+        protected virtual void OnCommandCompleted(CommandContext context, Command command)
         {
 
         }
 
-        protected virtual async void OnCannotExecute(CommandContext commandContext)
+        /// <summary>
+        /// Вызывается, если пользователь не прошел проверку <see cref="CanExecute(BaseCommandContext, Command)"/> при выполнении команды
+        /// </summary>
+        /// <param name="context">Контекст команды</param>
+        protected virtual async void OnCannotExecuteCommand(CommandContext context)
         {
-            await commandContext.BotClient.SendTextMessageAsync(commandContext.Message.Chat.Id, "Not enought permissions");
+            await context.BotClient.SendTextMessageAsync(context.Chat, "Not enought permissions");
         }
 
-        protected virtual async void OnUnknownCommand(TelegramBotClient client, Message message)
+        /// <summary>
+        /// Вызывается, если пользователь не прошел проверку <see cref="CanExecute(BaseCommandContext, Command)"/> при выполнении callback-команды
+        /// </summary>
+        /// <param name="context">Контекст callback-команды</param>
+        protected virtual async void OnCannotExecuteCallback(CallbackCommandContext context)
         {
-            await client.SendTextMessageAsync(message.Chat.Id, "Unknown command");
+            await context.BotClient.SendTextMessageAsync(context.Chat, "Not enought permissions");
+            await context.BotClient.AnswerCallbackQueryAsync(context.CallbackQuery.Id);
         }
 
-        protected virtual void OnUnhandledException(Exception e, CommandContext commandContext)
+        /// <summary>
+        /// Вызывается, если пользователь ввел неизвестную команду
+        /// </summary>
+        /// <param name="context">Контекст команды</param>
+        protected virtual async void OnUnknownCommand(CommandContext context)
         {
-            UnhandledException?.Invoke(this, new UnhandledExceptionEventArgs(e, commandContext));
+            await context.BotClient.SendTextMessageAsync(context.Chat, "Unknown command");
         }
 
+        /// <summary>
+        /// Вызывается, если пользователь ввел неизвестную callback-команду
+        /// </summary>
+        /// <param name="context">Контекст callback-команды</param>
+        protected virtual async void OnUnknownCallback(CallbackCommandContext context)
+        {
+            await context.BotClient.SendTextMessageAsync(context.Chat, "Unknown command");
+        }
+
+        /// <summary>
+        /// Вызывается при выбрасывании необрабатываемого исключения
+        /// </summary>
+        /// <param name="ex">Исключение</param>
+        /// <param name="context">Контекст команды</param>
+        protected virtual void OnUnhandledException(Exception ex, BaseCommandContext context)
+        {
+            UnhandledException?.Invoke(this, new UnhandledExceptionEventArgs(ex, context));
+        }
+
+        /// <summary>
+        /// Сравнение имени команды с текстом сообщения
+        /// </summary>
+        /// <param name="message">Текст сообщений</param>
+        /// <param name="commandName">Имя команды</param>
+        /// <returns><see langword="true"/>, если текст сообщения и имя команды равны, иначе - <see langword="false"/></returns>
         protected virtual bool CompareCommandNameForMessage(string message, string commandName)
         {
             return commandName == message;
         }
 
-        protected virtual bool CanExecute(CommandContext commandContext, Command command)
+        /// <summary>
+        /// Сравнение имени команды с текстом сообщения
+        /// </summary>
+        /// <param name="callbackQuery">Callback Data, указанная в кнопке, по которой кликнул пользователь</param>
+        /// <param name="commandName">Имя команды</param>
+        /// <returns><see langword="true"/>, если Callback Data и имя команды равны, иначе - <see langword="false"/></returns>
+        protected virtual bool CompareCallbackCommandNameForQuery(string callbackQuery, string commandName)
+        {
+            return commandName == callbackQuery;
+        }
+
+        /// <summary>
+        /// Может ли пользователь выполнить команду
+        /// </summary>
+        /// <param name="context">Контекст команды</param>
+        /// <param name="command">Команда, которую пользователь хочет выполнить</param>
+        /// <returns><see langword="true"/>, если пользователю разрешено выполнять команду, иначе - <see langword="false"/></returns>
+        protected virtual bool CanExecute(BaseCommandContext context, Command command)
         {
             return true;
         }
 
-        protected virtual bool IsUserBlocked(CommandContext commandContext)
+        /// <summary>
+        /// Заблокирован ли пользователь
+        /// </summary>
+        /// <param name="context">Контекст команды</param>
+        /// <returns><see langword="true"/>, если пользователь заблокирован, иначе - <see langword="false"/></returns>
+        protected virtual bool IsUserBlocked(BaseCommandContext context)
         {
             return false;
         }
@@ -150,26 +293,60 @@ namespace Telegram.Bot.Core
                 return null;
             }
         }
+
+        private CallbackCommand FindCallbackCommandForExecute(long userId, CallbackQuery callback)
+        {
+            foreach (Type type in _callbackCommands)
+            {
+                foreach (Attribute attribute in type.GetCustomAttributes(true))
+                {
+                    if (attribute is CommandNameAttribute commandName)
+                    {
+                        if (CompareCallbackCommandNameForQuery(callback.Data, commandName.Name))
+                        {
+                            var command = (CallbackCommand)Activator.CreateInstance(type);
+
+                            if (!command.OnlyResponse)
+                                UsersCommands.SetCommandForUser(userId, command);
+
+                            return command;
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
     }
 
     public delegate void UnhandledExceptionEventHandler(object sender, UnhandledExceptionEventArgs eventArgs);
 
     public class UnhandledExceptionEventArgs : EventArgs
     {
-        public UnhandledExceptionEventArgs(Exception exception, CommandContext commandContext)
+        public UnhandledExceptionEventArgs(Exception exception, BaseCommandContext commandContext)
         {
             Exception = exception;
             CommandContext = commandContext;
         }
 
+        /// <summary>
+        /// Исключение
+        /// </summary>
         public Exception Exception { get; }
-        public CommandContext CommandContext { get; }
+
+        /// <summary>
+        /// Контекст команды
+        /// </summary>
+        public BaseCommandContext CommandContext { get; }
     }
 
     public delegate void NewMessageEventHandler(object sender, NewMessageEventArgs eventArgs);
 
     public class NewMessageEventArgs : EventArgs
     {
+        /// <summary>
+        /// Новое сообщение
+        /// </summary>
         public Message Message { get; }
 
         public NewMessageEventArgs(Message message)

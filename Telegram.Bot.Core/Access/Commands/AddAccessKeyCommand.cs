@@ -14,7 +14,7 @@ namespace Telegram.Bot.Core.Access.Commands
         protected abstract Dictionary<string, TimeSpan> keysDurations { get; }
 
         /// <summary>
-        /// Ключ - название уровня доступа, значение - сама уровень
+        /// Ключ - название уровня доступа, значение - сам уровень
         /// </summary>
         protected abstract Dictionary<string, int> keysAccessLevels { get; }
 

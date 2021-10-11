@@ -1,17 +1,12 @@
 ﻿using System.Threading.Tasks;
-using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Telegram.Bot.Core.Callback
 {
-    public abstract class CallbackCommand
+    public abstract class CallbackCommand : Command
     {
-        public abstract Task Execute(CallbackCommandContext commandContext);
+        public abstract Task Execute(CallbackCommandContext context);
 
-        protected async Task Respond(CommandContext context, string message, IReplyMarkup replyMarkup = null, ParseMode parseMode = ParseMode.Html, bool disableWebPreview = true)
-        {
-            await context.BotClient.SendTextMessageAsync(context.Message.Chat, message, parseMode, replyMarkup: replyMarkup, disableWebPagePreview: disableWebPreview);
-        }
+        public bool OnlyResponse => parts == null || parts.Length == 0;
 
         protected async Task AnswerCallback(CallbackCommandContext context, string text = null, bool showAlert = false, string url = null, int cacheTime = 0)
         {

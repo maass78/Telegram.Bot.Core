@@ -73,14 +73,14 @@ namespace Telegram.Bot.Core.Access
         /// Возвращает <see cref="UserInfo{T}"/> по контексту команды
         /// </summary>
         /// <param name="context">Контекст команды</param>
-        public UserInfo<T> GetById(CommandContext context)
+        public UserInfo<T> GetById(BaseCommandContext context)
         {
-            var user = Users.FirstOrDefault(x => x.Id == context.Message.From.Id);
+            var user = Users.FirstOrDefault(x => x.Id == context.From.Id);
 
             if (user != null)
                 return user;
 
-            var newUser = new UserInfo<T>() { Id = context.Message.From.Id, Username = context.Message.From.Username };
+            var newUser = new UserInfo<T>() { Id = context.From.Id, Username = context.From.Username };
             Users.Add(newUser);
             return newUser;
         }
@@ -128,13 +128,13 @@ namespace Telegram.Bot.Core.Access
             }).Start();
         }
 
-        public virtual bool IsUserBlocked(CommandContext commandContext) => BlockedUsers.Contains(commandContext.Message.From.Id);
+        public virtual bool IsUserBlocked(BaseCommandContext commandContext) => BlockedUsers.Contains(commandContext.From.Id);
 
-        public virtual bool CanUseCommand(CommandContext commandContext, int requestedLevel)
+        public virtual bool CanUseCommand(BaseCommandContext commandContext, int requestedLevel)
         {
             var user = GetById(commandContext);
 
-            AccessKey accessKey = Keys.FirstOrDefault(x => x.AttachedUserId == commandContext.Message.From.Id);
+            AccessKey accessKey = Keys.FirstOrDefault(x => x.AttachedUserId == commandContext.From.Id);
 
             if (accessKey == null || accessKey.StartTime + accessKey.KeyDuration <= DateTime.UtcNow)
             {
