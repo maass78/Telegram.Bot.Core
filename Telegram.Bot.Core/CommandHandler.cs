@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Telegram.Bot.Core.Attributes;
 using Telegram.Bot.Core.Callback;
 using Telegram.Bot.Types;
 
@@ -213,28 +215,6 @@ namespace Telegram.Bot.Core
         }
 
         /// <summary>
-        /// Сравнение имени команды с текстом сообщения
-        /// </summary>
-        /// <param name="message">Текст сообщений</param>
-        /// <param name="commandName">Имя команды</param>
-        /// <returns><see langword="true"/>, если текст сообщения и имя команды равны, иначе - <see langword="false"/></returns>
-        protected virtual bool CompareCommandNameForMessage(string message, string commandName)
-        {
-            return commandName == message;
-        }
-
-        /// <summary>
-        /// Сравнение имени команды с текстом сообщения
-        /// </summary>
-        /// <param name="callbackQuery">Callback Data, указанная в кнопке, по которой кликнул пользователь</param>
-        /// <param name="commandName">Имя команды</param>
-        /// <returns><see langword="true"/>, если Callback Data и имя команды равны, иначе - <see langword="false"/></returns>
-        protected virtual bool CompareCallbackCommandNameForQuery(string callbackQuery, string commandName)
-        {
-            return commandName == callbackQuery;
-        }
-
-        /// <summary>
         /// Может ли пользователь выполнить команду
         /// </summary>
         /// <param name="context">Контекст команды</param>
@@ -273,9 +253,11 @@ namespace Telegram.Bot.Core
                     {
                         if(attribute is CommandNameAttribute commandName)
                         {
-                            if(CompareCommandNameForMessage(message.Text, commandName.Name))
+                            if (commandName.Compare(message.Text))
                             {
                                 command = (Command)Activator.CreateInstance(type);
+
+                                command.Args = GetCommandArgs(type, message.Text);
 
                                 UsersCommands.SetCommandForUser(userId, command);
 
@@ -302,14 +284,38 @@ namespace Telegram.Bot.Core
                 {
                     if (attribute is CommandNameAttribute commandName)
                     {
-                        if (CompareCallbackCommandNameForQuery(callback.Data, commandName.Name))
+                        if (commandName.Compare(callback.Data))
                         {
                             var command = (CallbackCommand)Activator.CreateInstance(type);
+
+                            command.Args = GetCommandArgs(type, callback.Data);
 
                             if (!command.OnlyResponse)
                                 UsersCommands.SetCommandForUser(userId, command);
 
                             return command;
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private string[] GetCommandArgs(Type commandType, string userInput)
+        {
+            foreach (Attribute attribute in commandType.GetCustomAttributes(true))
+            {
+                if (attribute is CommandWithArgsAttribute commandArgs)
+                {
+                    if (commandArgs.WithArgs && !string.IsNullOrWhiteSpace(userInput))
+                    {
+                        var parts = userInput.Split(new string[] { commandArgs.Separator }, StringSplitOptions.RemoveEmptyEntries);
+
+                        if (parts.Length > 1)
+                        {
+                            parts = parts.Skip(1).ToArray();
+                            return parts;
                         }
                     }
                 }

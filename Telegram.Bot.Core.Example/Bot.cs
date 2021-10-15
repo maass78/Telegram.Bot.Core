@@ -25,15 +25,9 @@ namespace Telegram.Bot.Core.Example
            
             _commandHandler = new AccessCommandHandler<Info>(UsersBase<Info>.Current) { UnknownCommandResponse = "Неизвестная команда", NotEnoughtPermissionsResponse = "Недостаточно прав" };
             
-            _commandHandler.UnhandledException += (s, e) =>
-            {
-                Logger.Current.LogException(e.Exception);
-            };
+            _commandHandler.UnhandledException += (s, e) => Logger.Current.LogException(e.Exception);
 
-            _commandHandler.NewMessage += (s, e) =>
-            {
-                LogInfo($"[{e.Message.From.Id} {e.Message.From.Username}]: {e.Message.Text ?? "null"}");
-            };
+            _commandHandler.NewMessage += (s, e) => Logger.Current.LogMessage(e.Message);
 
             _commandHandler.AddCommand<StartCommand>();
             _commandHandler.AddCallbackCommand<TestCallbackCommand>();
