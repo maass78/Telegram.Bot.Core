@@ -10,7 +10,7 @@ namespace Telegram.Bot.Core.Access
     /// <summary>
     /// Класс, позволяющий управлять базой пользователей
     /// </summary>
-    public class UsersBase<T>
+    public class UsersBase<T> where T : UserInfo, new()
     {
         private readonly static object _lockObj = new object();
 
@@ -24,7 +24,7 @@ namespace Telegram.Bot.Core.Access
         /// <summary>
         /// Коллекция ключ-значение, где ключ - Id пользователей, значение - информация о пользователе
         /// </summary>
-        public List<UserInfo<T>> Users { get; set; }
+        public List<T> Users { get; set; }
 
         /// <summary>
         /// Массив идентификаторов заблокированных пользователей
@@ -36,7 +36,7 @@ namespace Telegram.Bot.Core.Access
         /// </summary>
         public UsersBase()
         {
-            Users = new List<UserInfo<T>>();
+            Users = new List<T>();
             Keys = new List<AccessKey>();
             BlockedUsers = new List<long>();
         }
@@ -46,7 +46,7 @@ namespace Telegram.Bot.Core.Access
         /// </summary>
         /// <param name="users">Массив пользователей, которых необходимо загрузить в базу</param>
         /// <param name="keys">Массив ключей доступа, которых необходимо загрузить в базу</param>
-        public UsersBase(List<UserInfo<T>> users, List<AccessKey> keys)
+        public UsersBase(List<T> users, List<AccessKey> keys)
         {
             Users = users;
             Keys = keys;
@@ -57,14 +57,14 @@ namespace Telegram.Bot.Core.Access
         /// Возвращает <see cref="UserInfo{T}"/> по идентификатору пользователя
         /// </summary>
         /// <param name="userId">Идентификатор пользователя</param>
-        public UserInfo<T> GetById(long userId)
+        public T GetById(long userId)
         {
             var user = Users.FirstOrDefault(x => x.Id == userId);
 
             if (user != null)
                 return user;
 
-            var newUser = new UserInfo<T>() { Id = userId };
+            var newUser = new T() { Id = userId };
             Users.Add(newUser);
             return newUser;
         }
@@ -73,14 +73,14 @@ namespace Telegram.Bot.Core.Access
         /// Возвращает <see cref="UserInfo{T}"/> по контексту команды
         /// </summary>
         /// <param name="context">Контекст команды</param>
-        public UserInfo<T> GetById(BaseCommandContext context)
+        public T GetById(BaseCommandContext context)
         {
             var user = Users.FirstOrDefault(x => x.Id == context.From.Id);
 
             if (user != null)
                 return user;
 
-            var newUser = new UserInfo<T>() { Id = context.From.Id, Username = context.From.Username };
+            var newUser = new T() { Id = context.From.Id, Username = context.From.Username };
             Users.Add(newUser);
             return newUser;
         }
@@ -152,7 +152,7 @@ namespace Telegram.Bot.Core.Access
     /// <summary>
     /// Информация о пользователе
     /// </summary>
-    public class UserInfo<T>
+    public class UserInfo
     {
         public long Id { get; set; }
 
@@ -161,12 +161,7 @@ namespace Telegram.Bot.Core.Access
         public int AccessLevel { get; set; }
 
         /// <summary>
-        /// Коллекция ключ-значение, где ключ - имя параметра, а его значение, как ни странно, значение. Используйте для хранения нужной вам информации о пользователе 
-        /// </summary>
-        public T CustomInfo { get; set; }
-
-        /// <summary>
-        /// Конструктор класса <see cref="UserInfo{T}"/>
+        /// Конструктор класса <see cref="UserInfo"/>
         /// </summary>
         public UserInfo()
         {

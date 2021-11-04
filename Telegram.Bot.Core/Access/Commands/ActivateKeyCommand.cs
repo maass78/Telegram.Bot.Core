@@ -6,7 +6,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Telegram.Bot.Core.Access.Commands
 {
-    public abstract class ActivateKeyCommand<T> : Command
+    public abstract class ActivateKeyCommand<T> : Command where T : UserInfo, new()
     {
         /// <summary>
         /// "Введите ключ". Поддерживается <see cref="ParseMode.Html"/>

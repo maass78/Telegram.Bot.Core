@@ -142,7 +142,7 @@ namespace Telegram.Bot.Core
         /// <summary>
         /// Добавить новую команду
         /// </summary>
-        /// <typeparam name="T">Класс, производный от <see cref="Command"></typeparam>
+        /// <typeparam name="T">Класс, производный от <see cref="Command"/></typeparam>
         public void AddCommand<T>() where T : Command
         {
             _commands.Add(typeof(T));

@@ -9,7 +9,7 @@ namespace Telegram.Bot.Core.Access
     /// Стандартная реализация <see cref="CommandHandler"/> 
     /// с поддержкой уровней доступа к командам
     /// </summary>
-    public class AccessCommandHandler<T> : CommandHandler
+    public class AccessCommandHandler<T> : CommandHandler where T : UserInfo, new()
     {
         /// <summary>
         /// База пользователей
