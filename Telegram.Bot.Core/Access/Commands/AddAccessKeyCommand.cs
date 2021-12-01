@@ -66,7 +66,7 @@ namespace Telegram.Bot.Core.Access.Commands
                 buttons.Add(duration.Key);
             }
 
-            await Respond(context, selectDurationResponse, new ReplyKeyboardMarkup(buttons, true, true));
+            await Respond(context, selectDurationResponse, new ReplyKeyboardMarkup(buttons) { ResizeKeyboard = true, OneTimeKeyboard = true });
         }
 
         private async Task SelectAccessLevel(CommandContext context)
@@ -94,7 +94,7 @@ namespace Telegram.Bot.Core.Access.Commands
                 buttons.Add(accessLevel.Key);
             }
 
-            await Respond(context, selectAccessLevelResponse, new ReplyKeyboardMarkup(buttons, true, true));
+            await Respond(context, selectAccessLevelResponse, new ReplyKeyboardMarkup(buttons) { OneTimeKeyboard = true, ResizeKeyboard = true });
         }
 
         private async Task End(CommandContext context)

@@ -30,22 +30,18 @@ namespace Telegram.Bot.Core.Example
             _commandHandler.NewMessage += (s, e) => Logger.Current.LogMessage(e.Message);
 
             _commandHandler.AddCommand<StartCommand>();
+            _commandHandler.AddCommand<TestCommand>();
             _commandHandler.AddCallbackCommand<TestCallbackCommand>();
         }
 
         public void Start(CancellationToken token)
         {
-            _bot.StartReceiving(this, token);
+            _bot.StartReceiving(this, cancellationToken: token);
         }
 
         public UpdateType[] AllowedUpdates => new[] { UpdateType.Message, UpdateType.CallbackQuery };
 
-        public async Task HandleError(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
-        {
-            Console.WriteLine(exception.ToString());
-        }
-
-        public async Task HandleUpdate(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
             if (update.Message is Message message)
             {
@@ -56,6 +52,11 @@ namespace Telegram.Bot.Core.Example
             {
                 await _commandHandler.HandleCallbackAsync(_bot, callback);
             }
+        }
+
+        public async Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+        {
+            Console.WriteLine(exception.ToString());
         }
     }
 }
