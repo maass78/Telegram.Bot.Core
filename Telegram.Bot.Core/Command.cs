@@ -66,9 +66,10 @@ namespace Telegram.Bot.Core
         /// <param name="replyMarkup">Клавиатура</param>
         /// <param name="parseMode">Разметка</param>
         /// <param name="disableWebPreview">Отключать ли превью у ссылок</param>
-        protected async Task Respond(BaseCommandContext context, string message, IReplyMarkup replyMarkup = null, ParseMode parseMode = ParseMode.Html, bool disableWebPreview = true)
+        /// <returns>Отправленное сообщение</returns>
+        protected async Task<Message> Respond(BaseCommandContext context, string message, IReplyMarkup replyMarkup = null, ParseMode? parseMode = ParseMode.Html, bool disableWebPreview = true)
         {
-            await context.BotClient.SendTextMessageAsync(context.Chat, message, parseMode, replyMarkup: replyMarkup, disableWebPagePreview: disableWebPreview);
+            return await context.BotClient.SendTextMessageAsync(context.Chat, message, parseMode, replyMarkup: replyMarkup, disableWebPagePreview: disableWebPreview);
         }
 
         /// <summary>
@@ -80,10 +81,30 @@ namespace Telegram.Bot.Core
         /// <param name="replyMarkup">Клавиатура (только Inline)</param>
         /// <param name="parseMode">Разметка</param>
         /// <param name="disableWebPreview">Отключать ли превью у ссылок</param>
-        protected async Task Edit(BaseCommandContext context, Message toEdit, string message, InlineKeyboardMarkup replyMarkup = null, ParseMode parseMode = ParseMode.Html, bool disableWebPreview = true)
+        /// <returns>Изменённое сообщение</returns>
+        protected async Task<Message> Edit(BaseCommandContext context, Message toEdit, string message, InlineKeyboardMarkup replyMarkup = null, ParseMode? parseMode = ParseMode.Html, bool disableWebPreview = true)
         {
-            await context.BotClient.EditMessageTextAsync(toEdit.Chat, toEdit.MessageId, message, parseMode: parseMode, disableWebPagePreview: disableWebPreview, replyMarkup: replyMarkup);
+            return await context.BotClient.EditMessageTextAsync(toEdit.Chat, toEdit.MessageId, message, parseMode: parseMode, disableWebPagePreview: disableWebPreview, replyMarkup: replyMarkup);
         }
+
+        /// <summary>
+        /// Удаляет сообщение
+        /// </summary>
+        /// <param name="context">Контекст команды</param>
+        /// <param name="messageId">ID сообщения, которое необходимо удалить (свойство <see cref="Message.MessageId"/>)</param>
+        /// <returns></returns>
+        protected async Task Delete(BaseCommandContext context, int messageId)
+        {
+            await context.BotClient.DeleteMessageAsync(context.Chat, messageId);
+        }
+
+        /// <summary>
+        /// Удаляет сообщение
+        /// </summary>
+        /// <param name="context">Контекст команды</param>
+        /// <param name="toDelete">Сообщение, которое необходимо удалить</param>
+        /// <returns></returns>
+        protected async Task Delete(BaseCommandContext context, Message toDelete) => await Delete(context, toDelete.MessageId);
     }
 
     public delegate Task CommandPartAsyncAction(CommandContext context);
