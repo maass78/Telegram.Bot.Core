@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using Telegram.Bot.Types;
 using File = System.IO.File;
 
@@ -18,26 +19,53 @@ namespace Telegram.Bot.Core.Utilities
 
         private string _logFileName;
         private string _errorsFileName;
+        private Encoding _encoding;
+
+        /// <summary>
+        /// Логгировать ли в файл
+        /// </summary>
+        public bool LogInFile { get; set; }
+
+        /// <summary>
+        /// Логгировать ли в консоль
+        /// </summary>
+        public bool LogInConsole { get; set; }
 
         /// <summary>
         /// Конструктор класса
         /// </summary>
         /// <param name="logFileName">Имя файла лога</param>
         /// <param name="errorsFileName">Имя файла ошибок</param>
-        public Logger(string logFileName, string errorsFileName)
+        /// <param name="loggerEncoding">Кодировка для логгирования в консоль и записи в файл. По умолчанию <see cref="Encoding.UTF8"/></param>
+        public Logger(string logFileName, string errorsFileName, Encoding loggerEncoding = null)
         {
             _logFileName = logFileName;
             _errorsFileName = errorsFileName;
+
+            if (loggerEncoding == null)
+                _encoding = Encoding.UTF8;
+            else
+                _encoding = loggerEncoding;
+
+            Console.OutputEncoding = _encoding;
         }
 
         private void Log(string message)
         {
             string log = $"[{DateTime.Now}] {message}";
 
-            Console.WriteLine(log);
-            lock (_lockObj)
+            if (LogInConsole)
             {
-                File.AppendAllText(_logFileName, log + "\n");
+                Console.WriteLine(log);
+                Console.ResetColor();
+            }
+
+            if (LogInFile)
+            {
+                lock (_lockObj)
+                {
+                    File.AppendAllText(_logFileName, log + "\n", _encoding);
+                }
             }
         }
 
@@ -48,7 +76,9 @@ namespace Telegram.Bot.Core.Utilities
         /// <param name="type">Тип сообщения, указывается в квадратных скобках</param>
         public void LogInfo(string message, string type = "INFO")
         {
-            Console.ForegroundColor = ConsoleColor.White;
+            if (LogInConsole)
+                Console.ForegroundColor = ConsoleColor.White;
+
             Log($"[{type}] {message}");
         }
 
@@ -59,7 +89,9 @@ namespace Telegram.Bot.Core.Utilities
         /// <param name="type">Тип сообщения, указывается в квадратных скобках</param>
         public void LogSuccess(string message, string type = "SUCCESS")
         {
-            Console.ForegroundColor = ConsoleColor.Green;
+            if (LogInConsole)
+                Console.ForegroundColor = ConsoleColor.Green;
+
             Log($"[{type}] {message}");
         }
 
@@ -69,7 +101,9 @@ namespace Telegram.Bot.Core.Utilities
         /// <param name="message">Сообщение пользователя</param>
         public void LogMessage(Message message)
         {
-            Console.ForegroundColor = ConsoleColor.White;
+            if (LogInConsole)
+                Console.ForegroundColor = ConsoleColor.White;
+
             Log($"[NEW MESSAGE] [{message.From.Id} {message.From.Username ?? ""} | {message.From.FirstName ?? ""} {message.From.LastName ?? ""}]: {message.Text ?? "null"}");
         }
 
@@ -79,7 +113,9 @@ namespace Telegram.Bot.Core.Utilities
         /// <param name="callback">Сообщение пользователя</param>
         public void LogCallback(CallbackQuery callback)
         {
-            Console.ForegroundColor = ConsoleColor.White;
+            if (LogInConsole)
+                Console.ForegroundColor = ConsoleColor.White;
+
             Log($"[NEW MESSAGE] [{callback.From.Id} {callback.From.Username ?? ""} | {callback.From.FirstName ?? ""} {callback.From.LastName ?? ""}]: {callback.Data ?? "null"}");
         }
 
@@ -92,7 +128,8 @@ namespace Telegram.Bot.Core.Utilities
         /// <returns>ID ошибки, по которому её можно найти в логе</returns>
         public int LogException(Exception ex, string type = "ERROR", string additionalInfo = null)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
+            if (LogInConsole)
+                Console.ForegroundColor = ConsoleColor.Red;
 
             int errorId = _random.Next(1000000, 9999999);
 

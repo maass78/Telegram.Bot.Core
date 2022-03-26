@@ -6,7 +6,7 @@ namespace Telegram.Bot.Core.Access
     /// <summary>
     /// Генератор случайных строк
     /// </summary>
-    class RandomStringGenerator
+    internal class RandomStringGenerator
     {
         /// <summary>
         /// Возвращает экземпляр класса <see cref="RandomStringGenerator"/>, генерирующий строку только из цифр 0987654321
