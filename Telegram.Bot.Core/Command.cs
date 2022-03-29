@@ -1,8 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Telegram.Bot.Core.Attributes;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using Telegram.Bot.Exceptions;
 
 namespace Telegram.Bot.Core
 {
@@ -35,6 +37,7 @@ namespace Telegram.Bot.Core
         /// Массив частей команды. При новом сообщении вызывается следующая часть.
         /// </summary>
         protected abstract CommandPartAsyncAction[] parts { get; }
+
         /// <summary>
         /// Текущий индекс выполнения команды
         /// </summary>
@@ -75,16 +78,30 @@ namespace Telegram.Bot.Core
         /// <summary>
         /// Изменяет сообщение
         /// </summary>
+        /// <remarks>
+        /// Если исходное сообщение точно такое же, на которое хотите изменить, с проверкой <paramref name="checkForEquals"/> не будет изменять сообщение и вернет исходное. Если проверка отключена, вылетит <see cref="ApiRequestException"/>
+        /// </remarks>
         /// <param name="context">Контекст команды</param>
-        /// <param name="toEdit">Сообщение для изменения</param>
-        /// <param name="message">Текст, на который необходимо заменить</param>
+        /// <param name="messageToEdit">ID сообщения для изменения</param>
+        /// <param name="message">Текст, на который необходимо изменить</param>
         /// <param name="replyMarkup">Клавиатура (только Inline)</param>
+        /// <param name="checkForEquals">Проверять, равно ли </param>
         /// <param name="parseMode">Разметка</param>
         /// <param name="disableWebPreview">Отключать ли превью у ссылок</param>
         /// <returns>Изменённое сообщение</returns>
-        protected async Task<Message> Edit(BaseCommandContext context, Message toEdit, string message, InlineKeyboardMarkup replyMarkup = null, ParseMode? parseMode = ParseMode.Html, bool disableWebPreview = true)
+        protected async Task<Message> Edit(BaseCommandContext context, Message messageToEdit, string message, InlineKeyboardMarkup replyMarkup = null, bool checkForEquals = true, ParseMode? parseMode = ParseMode.Html, bool disableWebPreview = true)
         {
-            return await context.BotClient.EditMessageTextAsync(toEdit.Chat, toEdit.MessageId, message, parseMode: parseMode, disableWebPagePreview: disableWebPreview, replyMarkup: replyMarkup);
+            if (checkForEquals)
+            {
+                try
+                {
+                    if (Regex.Replace(message, "<.*?>", string.Empty) == messageToEdit.Text)
+                        return messageToEdit;
+                }
+                catch { }
+            }
+
+            return await context.BotClient.EditMessageTextAsync(messageToEdit.Chat, messageToEdit.MessageId, message, parseMode: parseMode, disableWebPagePreview: disableWebPreview, replyMarkup: replyMarkup);
         }
 
         /// <summary>
@@ -92,7 +109,6 @@ namespace Telegram.Bot.Core
         /// </summary>
         /// <param name="context">Контекст команды</param>
         /// <param name="messageId">ID сообщения, которое необходимо удалить (свойство <see cref="Message.MessageId"/>)</param>
-        /// <returns></returns>
         protected async Task Delete(BaseCommandContext context, int messageId)
         {
             await context.BotClient.DeleteMessageAsync(context.Chat, messageId);
@@ -103,7 +119,6 @@ namespace Telegram.Bot.Core
         /// </summary>
         /// <param name="context">Контекст команды</param>
         /// <param name="toDelete">Сообщение, которое необходимо удалить</param>
-        /// <returns></returns>
         protected async Task Delete(BaseCommandContext context, Message toDelete) => await Delete(context, toDelete.MessageId);
     }
 

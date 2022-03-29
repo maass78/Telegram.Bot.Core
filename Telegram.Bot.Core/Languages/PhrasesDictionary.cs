@@ -14,9 +14,9 @@ namespace Telegram.Bot.Core.Languages
         {
             LanguagePhrases = new Dictionary<LanguageCode, Dictionary<string, string>>();
 
-            foreach (var item in Enum.GetValues(typeof()))
+            foreach (var item in Enum.GetValues(typeof(LanguageCode)))
             {
-
+                
             }
 
         }

@@ -251,7 +251,7 @@ namespace Telegram.Bot.Core
                 {
                     foreach (Attribute attribute in type.GetCustomAttributes(true))
                     {
-                        if(attribute is CommandNameAttribute commandName)
+                        if (attribute is CommandNameAttribute commandName)
                         {
                             if (commandName.Compare(message.Text))
                             {
