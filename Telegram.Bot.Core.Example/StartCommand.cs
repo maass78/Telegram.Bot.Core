@@ -15,7 +15,7 @@ namespace Telegram.Bot.Core.Example
 
         private async Task First(CommandContext context)
         {
-            await Respond(context, "start", new InlineKeyboardMarkup(new InlineKeyboardButton("test") { CallbackData = "test" }));
+            await RespondPhrase(context, "start", new InlineKeyboardMarkup(new InlineKeyboardButton("test") { CallbackData = "test" }));
         }
     }
 }

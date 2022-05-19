@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot.Core.Access;
+using Telegram.Bot.Core.Languages;
 using Telegram.Bot.Core.Utilities;
 using Telegram.Bot.Extensions.Polling;
 using Telegram.Bot.Types;
@@ -17,11 +18,14 @@ namespace Telegram.Bot.Core.Example
 
         public Bot()
         {
+            PhrasesDictionary.Add(LanguageCode.Russian, "start", "здарова");
+            PhrasesDictionary.Add(LanguageCode.English, "start", "hello");
+
             Logger.Current = new Logger("log.txt", "errors.txt");
             UsersBase<Info>.Current = System.IO.File.Exists("users.json") ? UsersBase<Info>.LoadFromJson(System.IO.File.ReadAllText("users.json")) : new UsersBase<Info>();
             UsersBase<Info>.Current.StartAutoSave("users.json", TimeSpan.FromSeconds(20), new CancellationToken());
             
-            _bot = new TelegramBotClient("1918792358:AAF305hQFag9kB6gP1rjuHqO-e-YDtrZQZY");
+            _bot = new TelegramBotClient("5206812391:AAG_y1tUNGtbgOMwHmOyyvOsiHnD8uVrzZ0");
            
             _commandHandler = new AccessCommandHandler<Info>(UsersBase<Info>.Current) { UnknownCommandResponse = "Неизвестная команда", NotEnoughtPermissionsResponse = "Недостаточно прав" };
             
@@ -47,7 +51,7 @@ namespace Telegram.Bot.Core.Example
             {
                 await _commandHandler.HandleAsync(_bot, message);
             }
-
+            
             if (update.CallbackQuery is CallbackQuery callback)
             {
                 await _commandHandler.HandleCallbackAsync(_bot, callback);

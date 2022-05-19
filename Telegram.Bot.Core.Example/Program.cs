@@ -1,4 +1,5 @@
 ﻿using System;
+using Telegram.Bot.Core.Languages;
 
 namespace Telegram.Bot.Core.Example
 {

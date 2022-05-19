@@ -5,6 +5,8 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot.Exceptions;
+using Telegram.Bot.Core.Languages;
+using Telegram.Bot.Core.Languages.Exceptions;
 
 namespace Telegram.Bot.Core
 {
@@ -13,6 +15,11 @@ namespace Telegram.Bot.Core
     /// </summary>
     public abstract class Command
     {
+        /// <summary>
+        /// Статический экземпляр <see cref="ILanguageSelector"/> для удобного использования
+        /// </summary>
+        public static ILanguageSelector LanguageSelector { get; set; } = new LanguageSelector();
+
         /// <summary>
         /// Массив аргументов команды. Равен <see langword="null"/>, если у команды отсутствует атрибут <see cref="CommandWithArgsAttribute"/> или в него передано значение <see langword="false"/>
         /// </summary>
@@ -74,6 +81,40 @@ namespace Telegram.Bot.Core
         {
             return await context.BotClient.SendTextMessageAsync(context.Chat, message, parseMode, replyMarkup: replyMarkup, disableWebPagePreview: disableWebPreview);
         }
+
+        /// <summary>
+        /// Ответить пользователю, используя <see cref="PhrasesDictionary"/>
+        /// </summary>
+        /// <remarks>
+        /// Метод берет язык пользователя c помощью <see cref="LanguageSelector"/> (он не должен быть равен <see langword="null"/>) и выбирает фразу из <see cref="PhrasesDictionary"/>.
+        /// Если фраза не найдена, выбрасывает <see cref="PhraseNotFoundException"/>
+        /// </remarks>
+        /// <param name="context">Контекст команды</param>
+        /// <param name="message">Код фразы</param>
+        /// <param name="replyMarkup">Клавиатура</param>
+        /// <param name="parseMode">Разметка</param>
+        /// <param name="disableWebPreview">Отключать ли превью у ссылок</param>
+        /// <returns>Отправленное сообщение</returns>
+        /// <exception cref="PhraseNotFoundException"/>
+        protected async Task<Message> RespondPhrase(BaseCommandContext context, string phraseCode, IReplyMarkup replyMarkup = null, ParseMode? parseMode = ParseMode.Html, bool disableWebPreview = true)
+            => await Respond(context, PhrasesDictionary.GetPhrase(phraseCode, context.From.GetUserLanguage(LanguageSelector)), replyMarkup, parseMode, disableWebPreview);
+
+        /// <summary>
+        /// Ответить пользователю, используя <see cref="PhrasesDictionary"/> и <see cref="string.Format(string, object[])"/>
+        /// </summary>
+        /// <remarks>
+        /// Метод берет язык пользователя c помощью <see cref="LanguageSelector"/> (он не должен быть равен <see langword="null"/>) и выбирает фразу из <see cref="PhrasesDictionary"/>.
+        /// Если фраза не найдена, выбрасывает <see cref="PhraseNotFoundException"/>
+        /// </remarks>
+        /// <param name="context">Контекст команды</param>
+        /// <param name="message">Код фразы</param>
+        /// <param name="replyMarkup">Клавиатура</param>
+        /// <param name="parseMode">Разметка</param>
+        /// <param name="disableWebPreview">Отключать ли превью у ссылок</param>
+        /// <returns>Отправленное сообщение</returns>
+        /// <exception cref="PhraseNotFoundException"/>
+        protected async Task<Message> RespondFormatPhrase(BaseCommandContext context, string phraseCode, IReplyMarkup replyMarkup = null, ParseMode? parseMode = ParseMode.Html, bool disableWebPreview = true, params object[] format)
+            => await Respond(context, string.Format(PhrasesDictionary.GetPhrase(phraseCode, context.From.GetUserLanguage(LanguageSelector)), format), replyMarkup, parseMode, disableWebPreview);
 
         /// <summary>
         /// Изменяет сообщение
