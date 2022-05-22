@@ -37,8 +37,11 @@ namespace Telegram.Bot.Core.Utilities
         /// <param name="logFileName">Имя файла лога</param>
         /// <param name="errorsFileName">Имя файла ошибок</param>
         /// <param name="loggerEncoding">Кодировка для логгирования в консоль и записи в файл. По умолчанию <see cref="Encoding.UTF8"/></param>
-        public Logger(string logFileName, string errorsFileName, Encoding loggerEncoding = null)
+        public Logger(string logFileName, string errorsFileName, bool logInFile = true, bool logInConsole = true, Encoding loggerEncoding = null)
         {
+            LogInFile = logInFile;
+            LogInConsole = logInConsole;
+
             _logFileName = logFileName;
             _errorsFileName = errorsFileName;
 

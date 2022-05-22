@@ -57,7 +57,7 @@ namespace Telegram.Bot.Core
                 if (IsUserBlocked(context))
                     return;
 
-                Command command = FindCommandForExecute(message.From.Id, message);
+                Command command = FindCommandForExecute(message.From.Id, message, client);
 
                 if (command == null)
                 {
@@ -106,7 +106,7 @@ namespace Telegram.Bot.Core
                 if (IsUserBlocked(callbackContext))
                     return;
 
-                CallbackCommand command = FindCallbackCommandForExecute(callback.From.Id, callback);
+                CallbackCommand command = FindCallbackCommandForExecute(callback.From.Id, callback, client);
 
                 if (command == null)
                 {
@@ -235,7 +235,7 @@ namespace Telegram.Bot.Core
             return false;
         }
 
-        private Command FindCommandForExecute(long userId, Message message)
+        private Command FindCommandForExecute(long userId, Message message, TelegramBotClient botClient)
         {
             try
             {
@@ -253,7 +253,7 @@ namespace Telegram.Bot.Core
                     {
                         if (attribute is CommandNameAttribute commandName)
                         {
-                            if (commandName.Compare(message.Text))
+                            if (commandName.Compare(message.Text, new BaseCommandContext(message.Chat, message.From, botClient)))
                             {
                                 command = (Command)Activator.CreateInstance(type);
 
@@ -276,7 +276,7 @@ namespace Telegram.Bot.Core
             }
         }
 
-        private CallbackCommand FindCallbackCommandForExecute(long userId, CallbackQuery callback)
+        private CallbackCommand FindCallbackCommandForExecute(long userId, CallbackQuery callback, TelegramBotClient botClient)
         {
             foreach (Type type in _callbackCommands)
             {
@@ -284,7 +284,7 @@ namespace Telegram.Bot.Core
                 {
                     if (attribute is CommandNameAttribute commandName)
                     {
-                        if (commandName.Compare(callback.Data))
+                        if (commandName.Compare(callback.Data, new BaseCommandContext(callback.Message.Chat, callback.From, botClient)))
                         {
                             var command = (CallbackCommand)Activator.CreateInstance(type);
 

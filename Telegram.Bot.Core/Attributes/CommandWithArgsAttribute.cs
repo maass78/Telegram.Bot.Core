@@ -5,6 +5,7 @@ namespace Telegram.Bot.Core.Attributes
     /// <summary>
     /// Обозначает, может ли команда принимать аргументы (<see cref="Command.Args"/>). Если да, используйте вместе с <see cref="CommandNameStartsWithAttribute"/>
     /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class CommandWithArgsAttribute : Attribute
     {
         /// <summary>

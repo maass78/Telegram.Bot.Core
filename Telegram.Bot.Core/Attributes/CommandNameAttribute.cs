@@ -6,6 +6,7 @@ namespace Telegram.Bot.Core
     /// <summary>
     /// Атрибут имени команды
     /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class CommandNameAttribute : Attribute
     {
         /// <summary>
@@ -27,7 +28,8 @@ namespace Telegram.Bot.Core
         /// Соответствует ли имя команды введеному пользователю тексту
         /// </summary>
         /// <param name="text">Текст пользователя или <see cref="CallbackQuery.Data"/></param>
+        /// <param name="context">Контекст выполняемой команды</param>
         /// <returns><see langword="true"/>, если имя команды соответствует введеному пользователю тексту, иначе - <see langword="false"/></returns>
-        public virtual bool Compare(string text) => Name == text;
+        public virtual bool Compare(string text, BaseCommandContext context) => Name == text;
     }
 }
