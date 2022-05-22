@@ -127,6 +127,12 @@ namespace Telegram.Bot.Core
                     }
 
                     await command.Execute(callbackContext);
+
+                    if (command.IsCompleted)
+                    {
+                        UsersCommands.SetCommandForUser(callback.From.Id, null);
+                        OnCallbackCompleted(callbackContext, command);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -163,6 +169,16 @@ namespace Telegram.Bot.Core
         /// <param name="context">Контекст завершенной команды</param>
         /// <param name="command">Команда, которая завершила своё выполнение</param>
         protected virtual void OnCommandCompleted(CommandContext context, Command command)
+        {
+
+        }
+
+        /// <summary>
+        /// Вызывается после окончания выполнения callback-команды
+        /// </summary>
+        /// <param name="context">Контекст завершенной команды</param>
+        /// <param name="command">Команда, которая завершила своё выполнение</param>
+        protected virtual void OnCallbackCompleted(CallbackCommandContext context, Command command)
         {
 
         }
