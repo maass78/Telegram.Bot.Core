@@ -6,7 +6,7 @@ namespace Telegram.Bot.Core.Callback
     {
         public CallbackQuery CallbackQuery { get; }
 
-        public CallbackCommandContext(CallbackQuery callback, TelegramBotClient bot) : base(callback.Message.Chat, callback.From, bot)
+        public CallbackCommandContext(CallbackQuery callback, TelegramBotClient bot, CommandHandler handler) : base(callback.Message.Chat, callback.From, bot, handler)
         {
             CallbackQuery = callback;
         }

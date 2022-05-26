@@ -42,6 +42,15 @@ namespace Telegram.Bot.Core
         }
 
         /// <summary>
+        /// Убирает очередь CommandPartAction'ов для пользователя 
+        /// </summary>
+        /// <param name="userId">ID пользователя, которому необходимо убрать команду</param>
+        public void ResetCommand(long userId)
+        {
+            UsersCommands.SetCommandForUser(userId, null);
+        }
+
+        /// <summary>
         /// Обработать новое сообщение
         /// </summary>
         /// <param name="client">Экземпляр класса <see cref="TelegramBotClient"/>, с помощью которого необходимо обработать новое сообщение</param>
@@ -50,7 +59,7 @@ namespace Telegram.Bot.Core
         {
             try
             {
-                CommandContext context = new CommandContext(message, client);
+                CommandContext context = new CommandContext(message, client, this);
 
                 NewMessage?.Invoke(this, new NewMessageEventArgs(message));
 
@@ -101,7 +110,7 @@ namespace Telegram.Bot.Core
         {
             try
             {
-                CallbackCommandContext callbackContext = new CallbackCommandContext(callback, client);
+                CallbackCommandContext callbackContext = new CallbackCommandContext(callback, client, this);
 
                 if (IsUserBlocked(callbackContext))
                     return;
@@ -269,7 +278,7 @@ namespace Telegram.Bot.Core
                     {
                         if (attribute is CommandNameAttribute commandName)
                         {
-                            if (commandName.Compare(message.Text, new BaseCommandContext(message.Chat, message.From, botClient)))
+                            if (commandName.Compare(message.Text, new BaseCommandContext(message.Chat, message.From, botClient, this)))
                             {
                                 command = (Command)Activator.CreateInstance(type);
 
@@ -300,7 +309,7 @@ namespace Telegram.Bot.Core
                 {
                     if (attribute is CommandNameAttribute commandName)
                     {
-                        if (commandName.Compare(callback.Data, new BaseCommandContext(callback.Message.Chat, callback.From, botClient)))
+                        if (commandName.Compare(callback.Data, new BaseCommandContext(callback.Message.Chat, callback.From, botClient, this)))
                         {
                             var command = (CallbackCommand)Activator.CreateInstance(type);
 

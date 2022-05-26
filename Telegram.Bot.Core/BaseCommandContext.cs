@@ -7,11 +7,12 @@ namespace Telegram.Bot.Core
     /// </summary>
     public class BaseCommandContext
     {
-        public BaseCommandContext(Chat chat, User from, TelegramBotClient bot)
+        public BaseCommandContext(Chat chat, User from, TelegramBotClient bot, CommandHandler handler)
         {
             From = from;
             BotClient = bot;
             Chat = chat;
+            CommandHandler = handler;
         }
 
         public Chat Chat { get; set; }
@@ -19,5 +20,7 @@ namespace Telegram.Bot.Core
         public User From { get; set; }
 
         public TelegramBotClient BotClient { get; set; }
+
+        public CommandHandler CommandHandler { get; set; }
     }
 }
