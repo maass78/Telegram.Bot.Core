@@ -146,6 +146,24 @@ namespace Telegram.Bot.Core
         }
 
         /// <summary>
+        /// Изменяет сообщение
+        /// </summary>
+        /// <remarks>
+        /// Если исходное сообщение точно такое же, на которое хотите изменить, вылетит <see cref="ApiRequestException"/>
+        /// </remarks>
+        /// <param name="context">Контекст команды</param>
+        /// <param name="messageIdToEdit">ID сообщения для изменения</param>
+        /// <param name="message">Текст, на который необходимо изменить</param>
+        /// <param name="replyMarkup">Клавиатура (только Inline)</param>
+        /// <param name="parseMode">Разметка</param>
+        /// <param name="disableWebPreview">Отключать ли превью у ссылок</param>
+        /// <returns>Изменённое сообщение</returns>
+        protected async Task<Message> Edit(BaseCommandContext context, int messageIdToEdit, string message, InlineKeyboardMarkup replyMarkup = null, ParseMode? parseMode = ParseMode.Html, bool disableWebPreview = true)
+        {
+            return await context.BotClient.EditMessageTextAsync(context.Chat, messageIdToEdit, message, parseMode: parseMode, disableWebPagePreview: disableWebPreview, replyMarkup: replyMarkup);
+        }
+
+        /// <summary>
         /// Удаляет сообщение
         /// </summary>
         /// <param name="context">Контекст команды</param>
