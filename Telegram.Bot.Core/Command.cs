@@ -7,6 +7,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Core.Languages;
 using Telegram.Bot.Core.Languages.Exceptions;
+using System.Linq;
 
 namespace Telegram.Bot.Core
 {
@@ -136,7 +137,7 @@ namespace Telegram.Bot.Core
             {
                 try
                 {
-                    if (Regex.Replace(message, "<.*?>", string.Empty) == messageToEdit.Text)
+                    if (Regex.Replace(message, "<.*?>", string.Empty) == messageToEdit.Text && IsKeyboardsEquals(replyMarkup, messageToEdit.ReplyMarkup))
                         return messageToEdit;
                 }
                 catch { }
@@ -145,6 +146,41 @@ namespace Telegram.Bot.Core
             return await context.BotClient.EditMessageTextAsync(messageToEdit.Chat, messageToEdit.MessageId, message, parseMode: parseMode, disableWebPagePreview: disableWebPreview, replyMarkup: replyMarkup);
         }
 
+        private bool IsKeyboardsEquals(InlineKeyboardMarkup keyboard1, InlineKeyboardMarkup keyboard2)
+        {
+            if (keyboard1 != null && keyboard2 != null)
+            {
+                var buttons1 = keyboard1.InlineKeyboard.Select(x => x.ToList()).ToList();
+                var buttons2 = keyboard2.InlineKeyboard.Select(x => x.ToList()).ToList();
+
+                if (buttons1.Count != buttons2.Count)
+                    return false;
+
+                for (int i = 0; i < buttons1.Count; i++)
+                {
+                    if (buttons1[i].Count != buttons2[i].Count)
+                        return false;
+
+                    for (int j = 0; j < buttons1[i].Count; j++)
+                    {
+                        if (buttons1[i][j].Text != buttons2[i][j].Text)
+                            return false;
+
+                        if (buttons1[i][j].CallbackData != buttons2[i][j].CallbackData)
+                            return false;
+
+                        if (buttons1[i][j].Url != buttons2[i][j].Url)
+                            return false;
+                    }
+                }
+            }
+            else if (keyboard1 == null != (keyboard2 == null))
+            {
+                return false;
+            }
+
+            return true;
+        }
         /// <summary>
         /// Изменяет сообщение
         /// </summary>
