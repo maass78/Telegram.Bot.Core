@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Telegram.Bot.Core.Access;
 using Telegram.Bot.Core.Languages;
 using Telegram.Bot.Core.Utilities;
-using Telegram.Bot.Extensions.Polling;
+using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -61,6 +61,11 @@ namespace Telegram.Bot.Core.Example
         public async Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
         {
             Console.WriteLine(exception.ToString());
+        }
+
+        public Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }
