@@ -50,7 +50,8 @@ namespace Telegram.Bot.Core.Utilities
             else
                 _encoding = loggerEncoding;
 
-            Console.OutputEncoding = _encoding;
+            if (logInConsole)
+                Console.OutputEncoding = _encoding;
         }
 
         private void Log(string message)

@@ -70,7 +70,7 @@ namespace Telegram.Bot.Core.Access
             try
             {
                 if (NotEnoughtPermissionsResponse != null)
-                    await context.BotClient.SendTextMessageAsync(context.Chat, NotEnoughtPermissionsResponse, ParseMode.Html, replyMarkup: Keyboard);
+                    await context.BotClient.SendTextMessageAsync(context.Chat, NotEnoughtPermissionsResponse, parseMode: ParseMode.Html, replyMarkup: Keyboard);
             }
             catch { }
         }
@@ -80,7 +80,7 @@ namespace Telegram.Bot.Core.Access
             try
             {
                 if (NotEnoughtPermissionsResponse != null)
-                    await context.BotClient.SendTextMessageAsync(context.Chat, NotEnoughtPermissionsResponse, ParseMode.Html, replyMarkup: Keyboard);
+                    await context.BotClient.SendTextMessageAsync(context.Chat, NotEnoughtPermissionsResponse, parseMode: ParseMode.Html, replyMarkup: Keyboard);
 
                 await context.BotClient.AnswerCallbackQueryAsync(context.CallbackQuery.Id);
             }
@@ -92,7 +92,7 @@ namespace Telegram.Bot.Core.Access
             try
             {
                 if (UnknownCommandResponse != null)
-                    await context.BotClient.SendTextMessageAsync(context.Chat, UnknownCommandResponse, ParseMode.Html, replyMarkup: Keyboard);
+                    await context.BotClient.SendTextMessageAsync(context.Chat, UnknownCommandResponse, parseMode: ParseMode.Html, replyMarkup: Keyboard);
             }
             catch { }
         }
@@ -102,7 +102,7 @@ namespace Telegram.Bot.Core.Access
             try
             {
                 if (UnknownCallbackResponse != null)
-                    await context.BotClient.SendTextMessageAsync(context.Chat, UnknownCallbackResponse, ParseMode.Html, replyMarkup: Keyboard);
+                    await context.BotClient.SendTextMessageAsync(context.Chat, UnknownCallbackResponse, parseMode: ParseMode.Html, replyMarkup: Keyboard);
             }
             catch { }
         }

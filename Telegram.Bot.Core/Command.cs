@@ -80,7 +80,7 @@ namespace Telegram.Bot.Core
         /// <returns>Отправленное сообщение</returns>
         protected async Task<Message> Respond(BaseCommandContext context, string message, IReplyMarkup replyMarkup = null, ParseMode? parseMode = ParseMode.Html, bool disableWebPreview = true)
         {
-            return await context.BotClient.SendTextMessageAsync(context.Chat, message, parseMode, replyMarkup: replyMarkup, disableWebPagePreview: disableWebPreview);
+            return await context.BotClient.SendTextMessageAsync(context.Chat, message, parseMode: parseMode, replyMarkup: replyMarkup, disableWebPagePreview: disableWebPreview);
         }
 
         /// <summary>
